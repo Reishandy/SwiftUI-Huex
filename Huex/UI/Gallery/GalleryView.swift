@@ -6,23 +6,26 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct GalleryView: View {
 	@Namespace private var galleryNamespace
 	
-	@State private var selectedPhoto: FlushPreview?
+	@Query(sort: \PhotoMetadata.timestamp, order: .reverse)
+	private var photoMetadatas: [PhotoMetadata]
+	
+	@State private var selectedPhoto: PhotoMetadata?
 	
 	var body: some View {
 		NavigationStack {
-			// TODO: Update
-			FlushGridView((1...99).map{ FlushPreview(id: $0) }, isReversed: true) { item in
-				RoundedRectangle(cornerRadius: 4)
+			FlushGridView(photoMetadatas, isReversed: true) { photoMetadata in
+				PhotoView(metadata: photoMetadata)
 					.aspectRatio(1, contentMode: .fit)
-					.foregroundStyle(.secondary)
+					.clipShape(RoundedRectangle(cornerRadius: 4))
 					.onTapGesture {
-						selectedPhoto = item
+						selectedPhoto = photoMetadata
 					}
-					.matchedTransitionSource(id: item.id, in: galleryNamespace)
+					.matchedTransitionSource(id: photoMetadata.id, in: galleryNamespace)
 			}
 			.toolbar {
 				ToolbarItem(placement: .topBarLeading) {
@@ -46,4 +49,5 @@ struct GalleryView: View {
 
 #Preview {
 	GalleryView()
+		.modelContainer(PreviewData.container)
 }

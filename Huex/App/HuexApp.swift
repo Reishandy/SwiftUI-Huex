@@ -6,12 +6,41 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct HuexApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
+	private let modelContainer: ModelContainer
+	
+	@State private var photoPermissionService = PhotoPermissionService()
+	@State private var photoSyncService: PhotoSyncService
+	
+	@Environment(\.scenePhase) private var scenePhase
+	
+	init() {
+		do {
+			modelContainer = try ModelContainer(for: PhotoMetadata.self)
+		} catch {
+			fatalError("Failed to initialize SwiftData: \(error)")
+		}
+		
+		_photoSyncService = State(initialValue: PhotoSyncService(modelContainer: modelContainer))
+	}
+	
+	var body: some Scene {
+		WindowGroup {
+			ContentView()
+				.environment(photoPermissionService)
+				.environment(photoSyncService)
+				.task(id: photoPermissionService.authorizationStatus) {
+					guard photoPermissionService.isAuthorized else { return }
+					await photoSyncService.start()
+				}
+		}
+		.modelContainer(modelContainer)
+		.onChange(of: scenePhase) { _, newPhase in
+			guard newPhase == .active else { return }
+			photoPermissionService.refreshStatus()
+		}
+	}
 }
