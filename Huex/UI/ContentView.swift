@@ -45,5 +45,5 @@ struct ContentView: View {
 #Preview {
     ContentView()
 		.modelContainer(PreviewData.container)
-		.environment(PhotoPermissionService())
+		.environment(PhotoPermissionService(isPreview: true))
 }

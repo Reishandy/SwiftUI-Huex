@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct PhotoView: View {
-	let metadata: PhotoMetadata
+	let photoMetadata: PhotoMetadata
 	var targetSize: CGSize = CGSize(width: 300, height: 300)
+	var contentMode: ContentMode = .fill
 	
 	@State private var image: UIImage?
 	
@@ -18,7 +19,7 @@ struct PhotoView: View {
 			if let image {
 				Image(uiImage: image)
 					.resizable()
-					.aspectRatio(contentMode: .fill)
+					.aspectRatio(contentMode: contentMode)
 			} else {
 				Rectangle()
 					.fill(.secondary)
@@ -28,13 +29,13 @@ struct PhotoView: View {
 					}
 			}
 		}
-		.task(id: metadata.phaccessLocalIdentifier) {
-			guard let asset = fetchPHAsset(localIdentifier: metadata.phaccessLocalIdentifier) else { return }
+		.task(id: photoMetadata.phaccessLocalIdentifier) {
+			guard let asset = fetchPHAsset(localIdentifier: photoMetadata.phaccessLocalIdentifier) else { return }
 			image = await requestImage(for: asset, targetSize: targetSize)
 		}
 	}
 }
 
 #Preview {
-	PhotoView(metadata: PhotoMetadata(phaccessLocalIdentifier: "preview-1"))
+	PhotoView(photoMetadata: PhotoMetadata(phaccessLocalIdentifier: "preview-1"))
 }

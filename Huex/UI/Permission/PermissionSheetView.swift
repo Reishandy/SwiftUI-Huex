@@ -26,7 +26,7 @@ struct PermissionSheetView: View {
 					)
 				)
 			
-			Text("Request Permission")
+			Text("Permission Request")
 				.font(.largeTitle)
 				.fontWeight(.bold)
 			

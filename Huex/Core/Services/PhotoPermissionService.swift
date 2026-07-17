@@ -14,8 +14,8 @@ import Observation
 final class PhotoPermissionService {
 	private(set) var authorizationStatus: PHAuthorizationStatus
 	
-	init() {
-		self.authorizationStatus = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+	init(isPreview: Bool = false) {
+		self.authorizationStatus = isPreview ? .authorized : PHPhotoLibrary.authorizationStatus(for: .readWrite)
 	}
 	
 	var isAuthorized: Bool {
