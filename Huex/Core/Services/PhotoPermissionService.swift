@@ -23,7 +23,11 @@ final class PhotoPermissionService {
 	}
 	
 	var shouldShowPermissionSheet: Bool {
-		authorizationStatus == .denied || authorizationStatus == .restricted
+		authorizationStatus == .denied || authorizationStatus == .restricted || authorizationStatus == .notDetermined
+	}
+	
+	var hasAlreadyGivenPermission: Bool {
+		authorizationStatus != .notDetermined
 	}
 	
 	func requestAccess() async {

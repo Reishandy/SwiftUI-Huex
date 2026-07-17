@@ -9,6 +9,10 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+	@Environment(PhotoPermissionService.self) private var photoPermissionService
+	
+	@State private var isPermissionSheetShown = false
+	
     var body: some View {
 		TabView {
 			Tab("Gallery", systemImage: "photo.on.rectangle.angled.fill") {
@@ -24,10 +28,22 @@ struct ContentView: View {
 			}
 		}
 		.tabViewStyle(.sidebarAdaptable)
+		.sheet(isPresented: $isPermissionSheetShown) {
+			PermissionSheetView()
+				.presentationDetents([.large])
+				.interactiveDismissDisabled()
+		}
+		.onAppear {
+			isPermissionSheetShown = photoPermissionService.shouldShowPermissionSheet
+		}
+		.onChange(of: photoPermissionService.shouldShowPermissionSheet) { _, _ in
+			isPermissionSheetShown = photoPermissionService.shouldShowPermissionSheet
+		}
     }
 }
 
 #Preview {
     ContentView()
 		.modelContainer(PreviewData.container)
+		.environment(PhotoPermissionService())
 }
