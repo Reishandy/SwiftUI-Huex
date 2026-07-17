@@ -66,6 +66,7 @@ struct PermissionSheetView: View {
 			}
 			.buttonStyle(.borderedProminent)
 			.controlSize(.large)
+			.padding(.bottom, 8)
 		}
 		.padding()
 	}

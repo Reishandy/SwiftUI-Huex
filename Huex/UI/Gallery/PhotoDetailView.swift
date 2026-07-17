@@ -11,20 +11,39 @@ import Photos
 struct PhotoDetailView: View {
 	@Environment(\.dismiss) private var dismiss
 	
-	let photoMetadata: PhotoMetadata
+	let photoMetadatas: [PhotoMetadata]
+	let galleryNamespace: Namespace.ID
 	
-	// TODO: Swipeable photos
+	@State private var currentPhoto: PhotoMetadata
+	
+	init(photoMetadatas: [PhotoMetadata], initialPhoto: PhotoMetadata, galleryNamespace: Namespace.ID) {
+		self.photoMetadatas = photoMetadatas
+		self.galleryNamespace = galleryNamespace
+		_currentPhoto = State(initialValue: initialPhoto)
+	}
+	
+	// TODO: Fix split second PhotoViiew gray showing
+	// TODO: Fix the swipe to unloaded photos cause it to stop midway
+	// TODO: Preview like the photos
+	// TODO: Toolbar and hide on click
 	var body: some View {
 		NavigationStack {
-			// TODO: Drag, zoom, etc
-			PhotoView(
-				photoMetadata: photoMetadata,
-				targetSize: PHImageManagerMaximumSize,
-				contentMode: .fit
-			)
-			.frame(maxWidth: .infinity, maxHeight: .infinity)
-			.contentShape(Rectangle())
+			TabView(selection: $currentPhoto) {
+				ForEach(photoMetadatas) { photoMetadata in
+					// TODO: Drag, zoom, and such
+					PhotoView(
+						photoMetadata: photoMetadata,
+						targetSize: PHImageManagerMaximumSize,
+						contentMode: .fit
+					)
+					.tag(photoMetadata)
+					.frame(maxWidth: .infinity, maxHeight: .infinity)
+					.contentShape(Rectangle())
+					.ignoresSafeArea()
+				}
+			}
 			.ignoresSafeArea()
+			.tabViewStyle(.page(indexDisplayMode: .never))
 			.toolbar {
 				ToolbarItem(placement: .topBarLeading) {
 					Button {
@@ -35,9 +54,16 @@ struct PhotoDetailView: View {
 				}
 			}
 		}
+		.navigationTransition(.zoom(sourceID: currentPhoto.id, in: galleryNamespace))
 	}
 }
 
 #Preview {
-	PhotoDetailView(photoMetadata: PhotoMetadata(phaccessLocalIdentifier: "preview-1"))
+	@Previewable @Namespace var namespace
+	
+	PhotoDetailView(
+		photoMetadatas: [PhotoMetadata(phaccessLocalIdentifier: "preview-1")],
+		initialPhoto: PhotoMetadata(phaccessLocalIdentifier: "preview-1"),
+		galleryNamespace: namespace
+	)
 }

@@ -14,7 +14,7 @@ struct GalleryView: View {
 	@Query(sort: \PhotoMetadata.timestamp, order: .forward)
 	private var photoMetadatas: [PhotoMetadata]
 	
-	@State private var selectedPhoto: PhotoMetadata?
+	@State private var initialPhoto: PhotoMetadata?
 	
 	var body: some View {
 		NavigationStack {
@@ -26,7 +26,7 @@ struct GalleryView: View {
 					}
 					.clipShape(RoundedRectangle(cornerRadius: 4))
 					.onTapGesture {
-						selectedPhoto = photoMetadata
+						initialPhoto = photoMetadata
 					}
 					.matchedTransitionSource(id: photoMetadata.id, in: galleryNamespace)
 			}
@@ -42,9 +42,12 @@ struct GalleryView: View {
 				}
 				.sharedBackgroundVisibility(.hidden)
 			}
-			.fullScreenCover(item: $selectedPhoto) { photo in
-				PhotoDetailView(photoMetadata: photo)
-					.navigationTransition(.zoom(sourceID: photo.id, in: galleryNamespace))
+			.fullScreenCover(item: $initialPhoto) { photo in
+				PhotoDetailView(
+					photoMetadatas: photoMetadatas.reversed(),
+					initialPhoto: photo,
+					galleryNamespace: galleryNamespace
+				)
 			}
 		}
 	}
