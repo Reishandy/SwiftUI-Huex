@@ -25,10 +25,11 @@ struct GalleryView: View {
 						PhotoView(photoMetadata: photoMetadata, contentMode: .fill)
 					}
 					.clipShape(RoundedRectangle(cornerRadius: 4))
+					.contentShape(RoundedRectangle(cornerRadius: 4))
 					.onTapGesture {
 						initialPhoto = photoMetadata
 					}
-					.matchedTransitionSource(id: photoMetadata.id, in: galleryNamespace)
+					.matchedTransitionSource(id: photoMetadata.phaccessLocalIdentifier, in: galleryNamespace)
 			}
 			.toolbar {
 				ToolbarItem(placement: .topBarLeading) {

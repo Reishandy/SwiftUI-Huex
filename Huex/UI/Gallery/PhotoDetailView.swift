@@ -22,8 +22,6 @@ struct PhotoDetailView: View {
 		_currentPhoto = State(initialValue: initialPhoto)
 	}
 	
-	// TODO: Fix split second PhotoViiew gray showing
-	// TODO: Fix the swipe to unloaded photos cause it to stop midway
 	// TODO: Preview like the photos
 	// TODO: Toolbar and hide on click
 	var body: some View {
@@ -54,7 +52,7 @@ struct PhotoDetailView: View {
 				}
 			}
 		}
-		.navigationTransition(.zoom(sourceID: currentPhoto.id, in: galleryNamespace))
+		.navigationTransition(.zoom(sourceID: currentPhoto.phaccessLocalIdentifier, in: galleryNamespace))
 	}
 }
 

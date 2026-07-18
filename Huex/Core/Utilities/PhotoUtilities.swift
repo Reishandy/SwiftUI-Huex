@@ -14,19 +14,28 @@ func fetchPHAsset(localIdentifier: String) -> PHAsset? {
 	PHAsset.fetchAssets(withLocalIdentifiers: [localIdentifier], options: nil).firstObject
 }
 
-func requestImage(for asset: PHAsset, targetSize: CGSize) async -> UIImage? {
-	await withCheckedContinuation { continuation in
-		let options = PHImageRequestOptions()
-		options.deliveryMode = .highQualityFormat
-		options.isNetworkAccessAllowed = true
+nonisolated func fetchImage(
+	for asset: PHAsset,
+	targetSize: CGSize
+) async -> UIImage? {
+	let manager = PHImageManager.default()
+	let options = PHImageRequestOptions()
+	options.isNetworkAccessAllowed = true
+	options.deliveryMode = .highQualityFormat
+	
+	return await withCheckedContinuation { continuation in
+		var didResume = false
 		
-		imageManager.requestImage(
+		manager.requestImage(
 			for: asset,
 			targetSize: targetSize,
 			contentMode: .aspectFill,
 			options: options
-		) { image, _ in
-			continuation.resume(returning: image)
+		) { result, info in
+			if !didResume {
+				didResume = true
+				continuation.resume(returning: result)
+			}
 		}
 	}
 }

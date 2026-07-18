@@ -15,23 +15,26 @@ struct PhotoView: View {
 	@State private var image: UIImage?
 	
 	var body: some View {
-		Group {
+		ZStack {
+			Color.clear
+			
 			if let image {
 				Image(uiImage: image)
 					.resizable()
 					.aspectRatio(contentMode: contentMode)
 			} else {
 				Rectangle()
-					.fill(.secondary)
+					.fill(.clear)
 					.overlay {
 						Image(systemName: "photo.trianglebadge.exclamationmark")
 							.foregroundStyle(.secondary)
 					}
 			}
 		}
+		.animation(.default, value: image)
 		.task(id: photoMetadata.phaccessLocalIdentifier) {
 			guard let asset = fetchPHAsset(localIdentifier: photoMetadata.phaccessLocalIdentifier) else { return }
-			image = await requestImage(for: asset, targetSize: targetSize)
+			image = await fetchImage(for: asset, targetSize: targetSize)
 		}
 	}
 }
