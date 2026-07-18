@@ -17,6 +17,11 @@ struct PaletteView: View {
 						TitleView(titleName: "Palette")
 					}
 					.sharedBackgroundVisibility(.hidden)
+					
+					ToolbarItem(placement: .topBarTrailing) {
+						// TODO: Actions
+						Image(systemName: "ellipsis")
+					}
 				}
 		}
     }

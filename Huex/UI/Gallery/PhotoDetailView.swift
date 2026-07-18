@@ -58,8 +58,46 @@ struct PhotoDetailView: View {
 				}
 				.sharedBackgroundVisibility(isToolbarVisible ? .visible : .hidden)
 				
+				ToolbarItem(placement: .principal) {
+					Text("TODO: INFO")
+						.padding()
+						.glassEffect()
+						.opacity(isToolbarVisible ? 1 : 0)
+						.allowsHitTesting(isToolbarVisible)
+				}
+				.sharedBackgroundVisibility(isToolbarVisible ? .visible : .hidden)
+				
+				ToolbarItem(placement: .primaryAction) {
+					// TODO: Actions
+					Image(systemName: "ellipsis")
+						.opacity(isToolbarVisible ? 1 : 0)
+						.allowsHitTesting(isToolbarVisible)
+				}
+				.sharedBackgroundVisibility(isToolbarVisible ? .visible : .hidden)
+				
 				ToolbarItem(placement: .bottomBar) {
-					Text("aa")
+					// TODO: Share
+					Image(systemName: "square.and.arrow.up")
+						.opacity(isToolbarVisible ? 1 : 0)
+						.allowsHitTesting(isToolbarVisible)
+				}
+				.sharedBackgroundVisibility(isToolbarVisible ? .visible : .hidden)
+				
+				ToolbarSpacer(placement: .bottomBar)
+				
+				ToolbarItem(placement: .bottomBar) {
+					// TODO: Palette
+					Text("TODO: PALETTE")
+						.opacity(isToolbarVisible ? 1 : 0)
+						.allowsHitTesting(isToolbarVisible)
+				}
+				.sharedBackgroundVisibility(isToolbarVisible ? .visible : .hidden)
+				
+				ToolbarSpacer(placement: .bottomBar)
+				
+				ToolbarItem(placement: .bottomBar) {
+					// TODO: Delete
+					Image(systemName: "trash")
 						.opacity(isToolbarVisible ? 1 : 0)
 						.allowsHitTesting(isToolbarVisible)
 				}

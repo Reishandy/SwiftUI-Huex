@@ -42,6 +42,19 @@ struct GalleryView: View {
 					)
 				}
 				.sharedBackgroundVisibility(.hidden)
+				
+				ToolbarItem(placement: .topBarTrailing) {
+					// TODO: Actions
+					Text("Select")
+						.padding()
+				}
+				
+				ToolbarSpacer(placement: .topBarTrailing)
+				
+				ToolbarItem(placement: .topBarTrailing) {
+					// TODO: Actions
+					Image(systemName: "ellipsis")
+				}
 			}
 			.fullScreenCover(item: $initialPhoto) { photo in
 				PhotoDetailView(
