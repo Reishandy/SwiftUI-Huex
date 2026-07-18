@@ -15,6 +15,8 @@ struct PhotoDetailView: View {
 	let galleryNamespace: Namespace.ID
 	
 	@State private var currentPhoto: PhotoMetadata
+	@State private var isZoomed: Bool = false
+	@State private var isToolbarVisible: Bool = true
 	
 	init(photoMetadatas: [PhotoMetadata], initialPhoto: PhotoMetadata, galleryNamespace: Namespace.ID) {
 		self.photoMetadatas = photoMetadatas
@@ -22,18 +24,21 @@ struct PhotoDetailView: View {
 		_currentPhoto = State(initialValue: initialPhoto)
 	}
 	
-	// TODO: Preview like the photos
-	// TODO: Toolbar and hide on click
+	// TODO: Fix toolbar hidden jump
 	var body: some View {
 		NavigationStack {
 			TabView(selection: $currentPhoto) {
 				ForEach(photoMetadatas) { photoMetadata in
-					// TODO: Drag, zoom, and such
 					PhotoView(
 						photoMetadata: photoMetadata,
 						targetSize: PHImageManagerMaximumSize,
 						contentMode: .fit
 					)
+					.zoomable(isZoomed: $isZoomed) {
+						withAnimation {
+							isToolbarVisible.toggle()
+						}
+					}
 					.tag(photoMetadata)
 					.frame(maxWidth: .infinity, maxHeight: .infinity)
 					.contentShape(Rectangle())
@@ -42,6 +47,7 @@ struct PhotoDetailView: View {
 			}
 			.ignoresSafeArea()
 			.tabViewStyle(.page(indexDisplayMode: .never))
+			.scrollDisabled(isZoomed)
 			.toolbar {
 				ToolbarItem(placement: .topBarLeading) {
 					Button {
@@ -50,9 +56,15 @@ struct PhotoDetailView: View {
 						Image(systemName: "chevron.backward")
 					}
 				}
+				
+				ToolbarItem(placement: .bottomBar) {
+					Text("aa")
+				}
 			}
+			.toolbar(isToolbarVisible ? .visible : .hidden, for: .navigationBar, .bottomBar)
 		}
 		.navigationTransition(.zoom(sourceID: currentPhoto.phaccessLocalIdentifier, in: galleryNamespace))
+		.interactiveDismissDisabled(isZoomed)
 	}
 }
 
