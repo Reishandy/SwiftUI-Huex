@@ -24,7 +24,6 @@ struct PhotoDetailView: View {
 		_currentPhoto = State(initialValue: initialPhoto)
 	}
 	
-	// TODO: Fix toolbar hidden jump
 	var body: some View {
 		NavigationStack {
 			TabView(selection: $currentPhoto) {
@@ -42,7 +41,6 @@ struct PhotoDetailView: View {
 					.tag(photoMetadata)
 					.frame(maxWidth: .infinity, maxHeight: .infinity)
 					.contentShape(Rectangle())
-					.ignoresSafeArea()
 				}
 			}
 			.ignoresSafeArea()
@@ -55,13 +53,18 @@ struct PhotoDetailView: View {
 					} label: {
 						Image(systemName: "chevron.backward")
 					}
+					.opacity(isToolbarVisible ? 1 : 0)
+					.allowsHitTesting(isToolbarVisible)
 				}
+				.sharedBackgroundVisibility(isToolbarVisible ? .visible : .hidden)
 				
 				ToolbarItem(placement: .bottomBar) {
 					Text("aa")
+						.opacity(isToolbarVisible ? 1 : 0)
+						.allowsHitTesting(isToolbarVisible)
 				}
+				.sharedBackgroundVisibility(isToolbarVisible ? .visible : .hidden)
 			}
-			.toolbar(isToolbarVisible ? .visible : .hidden, for: .navigationBar, .bottomBar)
 		}
 		.navigationTransition(.zoom(sourceID: currentPhoto.phaccessLocalIdentifier, in: galleryNamespace))
 		.interactiveDismissDisabled(isZoomed)
