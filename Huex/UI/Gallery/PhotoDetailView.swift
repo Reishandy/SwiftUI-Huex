@@ -54,13 +54,24 @@ struct PhotoDetailView: View {
 				.scrollPosition(id: $scrollPosition)
 				.scrollDisabled(isZoomed)
 				.onChange(of: scrollPosition) { _, newId in
-					if let newId, let match = photoMetadatas.first(where: { $0.id == newId }) {
-						currentPhoto = match
-					}
+					guard let newId, newId != currentPhoto.id,
+						  let match = photoMetadatas.first(where: { $0.id == newId }) else { return }
+					currentPhoto = match
+				}
+				.onChange(of: currentPhoto) { _, newPhoto in
+					guard scrollPosition != newPhoto.id else { return }
+					withAnimation { scrollPosition = newPhoto.id }
 				}
 			}
 			.frame(maxWidth: .infinity, maxHeight: .infinity)
 			.ignoresSafeArea()
+			.overlay(alignment: .bottom) {
+				// TODO: Fix fast scroll stutter
+				PhotoFilmstripView(photoMetadatas: photoMetadatas, currentPhoto: $currentPhoto)
+					.padding(.bottom, 10)
+					.opacity(isToolbarVisible ? 1 : 0)
+					.allowsHitTesting(isToolbarVisible)
+			}
 			.toolbar {
 				ToolbarItem(placement: .topBarLeading) {
 					Button {
