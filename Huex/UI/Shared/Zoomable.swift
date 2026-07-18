@@ -12,36 +12,40 @@ struct Zoomable: ViewModifier {
 	var maxZoom: CGFloat = 4.0
 	var onSingleTap: () -> Void = {}
 	
-	@State private var currentZoom: CGFloat = 0
-	@State private var totalZoom: CGFloat = 1
-	@State private var currentOffset: CGSize = .zero
-	@State private var totalOffset: CGSize = .zero
+	@State private var scale: CGFloat = 1.0
+	@State private var lastScale: CGFloat = 1.0
+	@State private var offset: CGSize = .zero
+	@State private var lastOffset: CGSize = .zero
 	
 	func body(content: Content) -> some View {
 		GeometryReader { geometry in
+			let size = geometry.size
+			
 			content
-				.scaleEffect(totalZoom + currentZoom)
-				.offset(x: totalOffset.width + currentOffset.width,
-						y: totalOffset.height + currentOffset.height)
+				.scaleEffect(scale)
+				.offset(offset)
 				.contentShape(Rectangle())
 				.onTapGesture(count: 2) { toggleZoom() }
 				.onTapGesture(count: 1) { onSingleTap() }
-				.gesture(magnify(in: geometry.size))
+				.gesture(magnify(in: size))
 				.simultaneousGesture(
-					pan(in: geometry.size),
-					including: isZoomed ? .all : .none
+					pan(in: size),
+					including: isZoomed ? .all : .none 
 				)
 		}
 	}
 	
 	private func toggleZoom() {
 		withAnimation(.spring()) {
-			if totalZoom > 1 {
-				totalZoom = 1
-				totalOffset = .zero
+			if scale > 1.0 {
+				scale = 1.0
+				offset = .zero
+				lastScale = 1.0
+				lastOffset = .zero
 				isZoomed = false
 			} else {
-				totalZoom = min(2.5, maxZoom)
+				scale = min(3.0, maxZoom)
+				lastScale = scale
 				isZoomed = true
 			}
 		}
@@ -49,36 +53,61 @@ struct Zoomable: ViewModifier {
 	
 	private func magnify(in size: CGSize) -> some Gesture {
 		MagnifyGesture()
-			.onChanged { value in currentZoom = value.magnification - 1 }
+			.onChanged { value in
+				scale = lastScale * value.magnification
+				
+				offset = CGSize(
+					width: lastOffset.width * value.magnification,
+					height: lastOffset.height * value.magnification
+				)
+				
+				let isNowZoomed = scale > 1.0
+				if isZoomed != isNowZoomed {
+					isZoomed = isNowZoomed
+				}
+			}
 			.onEnded { _ in
-				totalZoom = min(max(totalZoom + currentZoom, 1), maxZoom)
-				currentZoom = 0
-				isZoomed = totalZoom > 1
-				if totalZoom == 1 {
-					withAnimation(.spring()) { totalOffset = .zero }
+				if scale <= 1.0 {
+					withAnimation {
+						scale = 1.0
+						offset = .zero
+					}
+					lastScale = 1.0
+					lastOffset = .zero
+					isZoomed = false
 				} else {
-					clamp(in: size)
+					scale = min(scale, maxZoom)
+					lastScale = scale
+					enforceBoundaries(in: size)
+					isZoomed = true
 				}
 			}
 	}
 	
 	private func pan(in size: CGSize) -> some Gesture {
 		DragGesture()
-			.onChanged { value in currentOffset = value.translation }
+			.onChanged { value in
+				if scale > 1.0 {
+					offset = CGSize(
+						width: lastOffset.width + value.translation.width,
+						height: lastOffset.height + value.translation.height
+					)
+				}
+			}
 			.onEnded { _ in
-				totalOffset.width += currentOffset.width
-				totalOffset.height += currentOffset.height
-				currentOffset = .zero
-				clamp(in: size)
+				lastOffset = offset
+				enforceBoundaries(in: size)
 			}
 	}
 	
-	private func clamp(in size: CGSize) {
-		let maxX = max(0, (size.width * totalZoom - size.width) / 2)
-		let maxY = max(0, (size.height * totalZoom - size.height) / 2)
+	private func enforceBoundaries(in size: CGSize) {
+		let maxX = max(0, (size.width * scale - size.width) / 2)
+		let maxY = max(0, (size.height * scale - size.height) / 2)
+		
 		withAnimation(.spring()) {
-			totalOffset.width = min(max(totalOffset.width, -maxX), maxX)
-			totalOffset.height = min(max(totalOffset.height, -maxY), maxY)
+			offset.width = min(max(offset.width, -maxX), maxX)
+			offset.height = min(max(offset.height, -maxY), maxY)
+			lastOffset = offset
 		}
 	}
 }

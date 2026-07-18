@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Photos
+import SwiftData
 
 struct PhotoDetailView: View {
 	@Environment(\.dismiss) private var dismiss
@@ -15,37 +16,51 @@ struct PhotoDetailView: View {
 	let galleryNamespace: Namespace.ID
 	
 	@State private var currentPhoto: PhotoMetadata
-	@State private var isZoomed: Bool = false
-	@State private var isToolbarVisible: Bool = true
+	@State private var isZoomed = false
+	@State private var isToolbarVisible = true
+	@State private var scrollPosition: PhotoMetadata.ID?
 	
 	init(photoMetadatas: [PhotoMetadata], initialPhoto: PhotoMetadata, galleryNamespace: Namespace.ID) {
 		self.photoMetadatas = photoMetadatas
 		self.galleryNamespace = galleryNamespace
 		_currentPhoto = State(initialValue: initialPhoto)
+		_scrollPosition = State(initialValue: initialPhoto.id)
 	}
 	
 	var body: some View {
 		NavigationStack {
-			TabView(selection: $currentPhoto) {
-				ForEach(photoMetadatas) { photoMetadata in
-					PhotoView(
-						photoMetadata: photoMetadata,
-						targetSize: PHImageManagerMaximumSize,
-						contentMode: .fit
-					)
-					.zoomable(isZoomed: $isZoomed) {
-						withAnimation {
-							isToolbarVisible.toggle()
+			GeometryReader { geometry in
+				let size = geometry.size
+				
+				ScrollView(.horizontal) {
+					LazyHStack(spacing: 0) {
+						ForEach(photoMetadatas) { photoMetadata in
+							PhotoView(
+								photoMetadata: photoMetadata,
+								targetSize: PHImageManagerMaximumSize,
+								contentMode: .fit
+							)
+							.zoomable(isZoomed: $isZoomed) {
+								withAnimation { isToolbarVisible.toggle() }
+							}
+							.frame(width: size.width, height: size.height)
+							.contentShape(Rectangle())
+							.id(photoMetadata.id)
 						}
 					}
-					.tag(photoMetadata)
-					.frame(maxWidth: .infinity, maxHeight: .infinity)
-					.contentShape(Rectangle())
+					.scrollTargetLayout()
+				}
+				.scrollTargetBehavior(.paging)
+				.scrollPosition(id: $scrollPosition)
+				.scrollDisabled(isZoomed)
+				.onChange(of: scrollPosition) { _, newId in
+					if let newId, let match = photoMetadatas.first(where: { $0.id == newId }) {
+						currentPhoto = match
+					}
 				}
 			}
+			.frame(maxWidth: .infinity, maxHeight: .infinity)
 			.ignoresSafeArea()
-			.tabViewStyle(.page(indexDisplayMode: .never))
-			.scrollDisabled(isZoomed)
 			.toolbar {
 				ToolbarItem(placement: .topBarLeading) {
 					Button {
@@ -53,56 +68,39 @@ struct PhotoDetailView: View {
 					} label: {
 						Image(systemName: "chevron.backward")
 					}
-					.opacity(isToolbarVisible ? 1 : 0)
-					.allowsHitTesting(isToolbarVisible)
 				}
-				.sharedBackgroundVisibility(isToolbarVisible ? .visible : .hidden)
 				
 				ToolbarItem(placement: .principal) {
 					Text("TODO: INFO")
 						.padding()
 						.glassEffect()
-						.opacity(isToolbarVisible ? 1 : 0)
-						.allowsHitTesting(isToolbarVisible)
 				}
-				.sharedBackgroundVisibility(isToolbarVisible ? .visible : .hidden)
 				
 				ToolbarItem(placement: .primaryAction) {
 					// TODO: Actions
 					Image(systemName: "ellipsis")
-						.opacity(isToolbarVisible ? 1 : 0)
-						.allowsHitTesting(isToolbarVisible)
 				}
-				.sharedBackgroundVisibility(isToolbarVisible ? .visible : .hidden)
 				
 				ToolbarItem(placement: .bottomBar) {
 					// TODO: Share
 					Image(systemName: "square.and.arrow.up")
-						.opacity(isToolbarVisible ? 1 : 0)
-						.allowsHitTesting(isToolbarVisible)
 				}
-				.sharedBackgroundVisibility(isToolbarVisible ? .visible : .hidden)
 				
 				ToolbarSpacer(placement: .bottomBar)
 				
 				ToolbarItem(placement: .bottomBar) {
 					// TODO: Palette
 					Text("TODO: PALETTE")
-						.opacity(isToolbarVisible ? 1 : 0)
-						.allowsHitTesting(isToolbarVisible)
 				}
-				.sharedBackgroundVisibility(isToolbarVisible ? .visible : .hidden)
 				
 				ToolbarSpacer(placement: .bottomBar)
 				
 				ToolbarItem(placement: .bottomBar) {
 					// TODO: Delete
 					Image(systemName: "trash")
-						.opacity(isToolbarVisible ? 1 : 0)
-						.allowsHitTesting(isToolbarVisible)
 				}
-				.sharedBackgroundVisibility(isToolbarVisible ? .visible : .hidden)
 			}
+			.toolbar(isToolbarVisible ? .visible : .hidden, for: .navigationBar, .bottomBar)
 		}
 		.navigationTransition(.zoom(sourceID: currentPhoto.phaccessLocalIdentifier, in: galleryNamespace))
 		.interactiveDismissDisabled(isZoomed)
