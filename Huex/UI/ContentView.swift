@@ -24,7 +24,7 @@ struct ContentView: View {
 					PhotoDetailView(
 						photoMetadatas: request.photoMetadatas,
 						initialPhotoID: request.id,
-						galleryNamespace: request.namespace,
+						namespace: request.namespace,
 						gridScrollPosition: request.scrollPosition
 					)
 				}

@@ -35,7 +35,7 @@ struct GalleryView: View {
 	}
 	
 	@State private var gridScrollPosition = ScrollPosition()
-	@State private var isPaletteSheetShown = false
+	@State private var isCollectionSheetShown = false
 	@State private var searchText = ""
 	@State private var debouncedSearchText = ""
 	@State private var isSelect = false
@@ -159,7 +159,7 @@ struct GalleryView: View {
 				ToolbarSpacer(placement: .bottomBar)
 				
 				ToolbarItem(placement: .bottomBar) {
-					// TODO: Share
+					// TODO: Move
 					Button("Move", systemImage: "arrow.forward.folder") {
 						
 					}
@@ -172,7 +172,7 @@ struct GalleryView: View {
 				
 				ToolbarItem(placement: .bottomBar) {
 					Button {
-						isPaletteSheetShown = true
+						isCollectionSheetShown = true
 					} label: {
 						HStack {
 							Image(systemName: "paintpalette.fill")
@@ -185,10 +185,18 @@ struct GalleryView: View {
 						.padding()
 					}
 					.matchedTransitionSource(id: "sheetSource", in: galleryNamespace)
+					.gesture(
+						DragGesture()
+							.onEnded { value in
+								if value.translation.height < -5 {
+									isCollectionSheetShown = true
+								}
+							}
+					)
 				}
 			}
 		}
-		.sheet(isPresented: $isPaletteSheetShown) {
+		.sheet(isPresented: $isCollectionSheetShown) {
 			CollectionSheetView()
 				.presentationDetents([.medium, .large])
 				.presentationDragIndicator(.visible)
@@ -203,6 +211,7 @@ struct GalleryView: View {
 				debouncedSearchText = searchText
 			}
 		}
+		.sensoryFeedback(.impact, trigger: isSelect)
 	}
 }
 

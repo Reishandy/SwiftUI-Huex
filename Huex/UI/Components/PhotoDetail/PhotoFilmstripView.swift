@@ -35,9 +35,12 @@ struct PhotoFilmstripView: View {
 							height: isActive ? activeSize : baseHeight
 						)
 						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.overlay(
+							RoundedRectangle(cornerRadius: 6)
+								.stroke(photoMetadata.bucket?.color ?? .secondary, lineWidth: 1)
+						)
 						.opacity(isActive ? 1.0 : 0.6)
-						.animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
-						.id(photoMetadata.id)
+						.animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive).id(photoMetadata.id)
 						.onTapGesture {
 							withAnimation {
 								activeID = photoMetadata.id

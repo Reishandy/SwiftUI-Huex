@@ -10,24 +10,32 @@ import Photos
 import SwiftData
 
 struct PhotoDetailView: View {
+	@Namespace private var detailNamespace
+	
 	let photoMetadatas: [PhotoMetadata]
-	let galleryNamespace: Namespace.ID
+	let namespace: Namespace.ID
 	let initialPhotoID: PhotoMetadata.ID
+	
+	@Binding var gridScrollPosition: ScrollPosition
 	
 	@State private var activeID: PhotoMetadata.ID?
 	@State private var isZoomed = false
 	@State private var isToolbarVisible = true
-	@Binding var gridScrollPosition: ScrollPosition
+	@State private var isPaletteSheetShown = false
+	
+	private var activePhotometadata: PhotoMetadata? {
+		photoMetadatas.filter { $0.id == activeID }.first
+	}
 	
 	init(
 		photoMetadatas: [PhotoMetadata],
 		initialPhotoID: PhotoMetadata.ID,
-		galleryNamespace: Namespace.ID,
+		namespace: Namespace.ID,
 		gridScrollPosition: Binding<ScrollPosition>
 	) {
 		self.photoMetadatas = photoMetadatas
 		self.initialPhotoID = initialPhotoID
-		self.galleryNamespace = galleryNamespace
+		self.namespace = namespace
 		self._gridScrollPosition = gridScrollPosition
 		_activeID = State(initialValue: initialPhotoID)
 	}
@@ -82,32 +90,88 @@ struct PhotoDetailView: View {
 				.allowsHitTesting(isToolbarVisible)
 		}
 		.toolbar {
-			// TODO: Decide toolbar layout
-			ToolbarItem(placement: .principal) {
-				Text("TODO: INFO")
+			if let activePhotometadata {
+				ToolbarItem(placement: .principal) {
+						HStack {
+							Image(systemName: activePhotometadata.bucket?.symbol ?? "questionmark")
+								.foregroundStyle(activePhotometadata.bucket?.color ?? .secondary)
+								.shadow(radius: 2)
+							
+							Text(activePhotometadata.bucket?.displayName ?? "Uncategorized")
+								.bold()
+						}
+					.padding(12)
+					.glassEffect()
+				}
+			}
+			
+			ToolbarItem(placement: .topBarTrailing) {
+				// TODO: Actions
+				Menu {
+					Button("Move", systemImage: "arrow.forward.folder") {
+						
+					}
+					
+					Button("Reanalyze", systemImage: "arrow.2.squarepath") {
+						
+					}
+					
+					Button("Delete", systemImage: "trash", role: .destructive) {
+						
+					}
+				} label: {
+					Image(systemName: "ellipsis")
+				}
+			}
+			
+			ToolbarItem(placement: .bottomBar) {
+				// TODO: Share
+				Button("Share", systemImage: "square.and.arrow.up") {
+					
+				}
+			}
+			
+			ToolbarSpacer(placement: .bottomBar)
+			
+			ToolbarItem(placement: .bottomBar) {
+				Button {
+					isPaletteSheetShown = true
+				} label: {
+					HStack {
+						Image(systemName: "swatchpalette.fill")
+							.symbolRenderingMode(.palette)
+							.foregroundStyle(
+								.blue,
+								.green,
+								.red
+							)
+						
+						Text("Color Palette")
+							.font(.title3)
+							.bold()
+					}
 					.padding()
-			}
-			ToolbarItem(placement: .primaryAction) {
-				Image(systemName: "ellipsis")
-			}
-			ToolbarItem(placement: .bottomBar) {
-				Image(systemName: "square.and.arrow.up")
-			}
-			ToolbarItem(placement: .bottomBar) {
-				Spacer()
-			}
-			ToolbarItem(placement: .bottomBar) {
-				Text("TODO: PALETTE")
-			}
-			ToolbarItem(placement: .bottomBar) {
-				Spacer()
-			}
-			ToolbarItem(placement: .bottomBar) {
-				Image(systemName: "trash")
+				}
+				.matchedTransitionSource(id: "sheetSource", in: detailNamespace)
+				.gesture(
+					DragGesture()
+						.onEnded { value in
+							if value.translation.height < -5 {
+								isPaletteSheetShown = true
+							}
+						}
+				)
 			}
 		}
+		.sheet(isPresented: $isPaletteSheetShown) {
+			PaletteSheetView()
+				.presentationDetents([.medium, .large])
+				.presentationDragIndicator(.visible)
+				.navigationTransition(.zoom(sourceID: "sheetSource", in: detailNamespace))
+		}
+		.statusBarHidden(!isToolbarVisible)
 		.toolbar(isToolbarVisible ? .visible : .hidden, for: .navigationBar, .bottomBar)
-		.navigationTransition(.zoom(sourceID: activeID ?? initialPhotoID, in: galleryNamespace))
+		.navigationTransition(.zoom(sourceID: activeID ?? initialPhotoID, in: namespace))
 		.interactiveDismissDisabled(isZoomed)
 	}
 }
@@ -115,10 +179,12 @@ struct PhotoDetailView: View {
 #Preview {
 	@Previewable @Namespace var namespace
 	
-	PhotoDetailView(
-		photoMetadatas: [PhotoMetadata(phaccessLocalIdentifier: "preview-1")],
-		initialPhotoID: PhotoMetadata(phaccessLocalIdentifier: "preview-1").id,
-		galleryNamespace: namespace,
-		gridScrollPosition: .constant(ScrollPosition())
-	)
+	NavigationStack {
+		PhotoDetailView(
+			photoMetadatas: [PhotoMetadata(phaccessLocalIdentifier: "preview-1")],
+			initialPhotoID: PhotoMetadata(phaccessLocalIdentifier: "preview-1").id,
+			namespace: namespace,
+			gridScrollPosition: .constant(ScrollPosition())
+		)
+	}
 }
