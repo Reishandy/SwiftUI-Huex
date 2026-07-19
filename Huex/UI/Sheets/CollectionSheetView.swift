@@ -9,12 +9,14 @@ import SwiftUI
 
 struct CollectionSheetView: View {
 	@Environment(NavigationState.self) private var navState
+	@Environment(\.dismiss) private var dismiss
 	
 	// TODO: View
 	var body: some View {
 		List {
 			ForEach(ColorBucket.allCases) { bucket in
 				Button {
+					dismiss()
 					navState.paletteDetailRequest = bucket
 				} label: {
 					Text(bucket.displayName)

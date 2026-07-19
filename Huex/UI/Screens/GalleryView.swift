@@ -97,7 +97,8 @@ struct GalleryView: View {
 		}
 		.sheet(isPresented: $isPaletteSheetShown) {
 			CollectionSheetView()
-				.presentationDetents([.large])
+				.presentationDetents([.medium, .large])
+				.presentationDragIndicator(.visible)
 				.navigationTransition(.zoom(sourceID: "sheetSource", in: galleryNamespace))
 		}
 		.searchable(text: $searchText, placement: .toolbar, prompt: "Search by color or hex...")

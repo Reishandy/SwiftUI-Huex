@@ -61,14 +61,18 @@ struct PhotoFilmstripView: View {
 				guard let newID, activeID != newID else { return }
 				activeID = newID
 			}
-			.onAppear {
-				localScrollID = activeID
+			.task {
+				try? await Task.sleep(for: .milliseconds(50))
+				if localScrollID == nil {
+					localScrollID = activeID
+				}
 			}
 			.sensoryFeedback(.impact, trigger: localScrollID)
 		}
 		.frame(height: activeSize + 20)
 	}
 }
+
 #Preview {
     PhotoFilmstripView(
 		photoMetadatas: [PhotoMetadata(phaccessLocalIdentifier: "preview"), PhotoMetadata(phaccessLocalIdentifier: "preview")],
