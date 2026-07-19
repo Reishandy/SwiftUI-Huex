@@ -14,11 +14,16 @@ struct GalleryView: View {
 	@Query(sort: \PhotoMetadata.timestamp, order: .forward)
 	private var photoMetadatas: [PhotoMetadata]
 	
-	@State private var initialPhoto: PhotoMetadata?
+	@State private var selectedPhoto: PhotoMetadata?
+	@State private var gridScrollPosition = ScrollPosition()
 	
 	var body: some View {
 		NavigationStack {
-			FlushGridView(photoMetadatas, isReversed: true) { photoMetadata in
+			FlushGridView(
+				photoMetadatas,
+				isReversed: true,
+				scrollPosition: $gridScrollPosition
+			) { photoMetadata in
 				Color.clear
 					.aspectRatio(1, contentMode: .fit)
 					.overlay {
@@ -27,9 +32,9 @@ struct GalleryView: View {
 					.clipShape(RoundedRectangle(cornerRadius: 4))
 					.contentShape(RoundedRectangle(cornerRadius: 4))
 					.onTapGesture {
-						initialPhoto = photoMetadata
+						selectedPhoto = photoMetadata
 					}
-					.matchedTransitionSource(id: photoMetadata.phaccessLocalIdentifier, in: galleryNamespace)
+					.matchedTransitionSource(id: photoMetadata.id, in: galleryNamespace)
 			}
 			.toolbar {
 				ToolbarItem(placement: .topBarLeading) {
@@ -45,22 +50,23 @@ struct GalleryView: View {
 				
 				ToolbarItem(placement: .topBarTrailing) {
 					// TODO: Actions
-					Text("Select")
-						.padding()
+					Image(systemName: "ellipsis")
 				}
 				
 				ToolbarSpacer(placement: .topBarTrailing)
 				
 				ToolbarItem(placement: .topBarTrailing) {
 					// TODO: Actions
-					Image(systemName: "ellipsis")
+					Text("Select")
+						.padding()
 				}
 			}
-			.fullScreenCover(item: $initialPhoto) { photo in
+			.navigationDestination(item: $selectedPhoto) { photo in
 				PhotoDetailView(
 					photoMetadatas: photoMetadatas.reversed(),
-					initialPhoto: photo,
-					galleryNamespace: galleryNamespace
+					initialPhotoID: photo.id,
+					galleryNamespace: galleryNamespace,
+					gridScrollPosition: $gridScrollPosition
 				)
 			}
 		}

@@ -10,67 +10,68 @@ import SwiftData
 
 struct PhotoFilmstripView: View {
 	let photoMetadatas: [PhotoMetadata]
-	@Binding var currentPhoto: PhotoMetadata
+	@Binding var activeID: PhotoMetadata.ID?
 	
-	@State private var scrollPosition: PhotoMetadata.ID?
+	@State private var localScrollID: PhotoMetadata.ID?
 	
-	private let itemSize: CGFloat = 40
+	private let baseHeight: CGFloat = 40
+	private let inactiveWidth: CGFloat = 20
+	private let activeSize: CGFloat = 60
 	
 	var body: some View {
 		GeometryReader { geometry in
 			ScrollView(.horizontal, showsIndicators: false) {
-				LazyHStack(spacing: 12) {
+				LazyHStack(spacing: 6) {
 					ForEach(photoMetadatas) { photoMetadata in
+						let isActive = localScrollID == photoMetadata.id
+						
 						PhotoView(
 							photoMetadata: photoMetadata,
 							targetSize: CGSize(width: 100, height: 100),
 							contentMode: .fill
 						)
-						.frame(width: itemSize, height: itemSize)
+						.frame(
+							width: isActive ? activeSize : inactiveWidth,
+							height: isActive ? activeSize : baseHeight
+						)
 						.clipShape(RoundedRectangle(cornerRadius: 6))
-						.scrollTransition(.interactive, axis: .horizontal) { content, phase in
-							content
-								.scaleEffect(phase.isIdentity ? 1.5 : 1.0)
-								.opacity(phase.isIdentity ? 1 : 0.6)
-						}
+						.opacity(isActive ? 1.0 : 0.6)
+						.animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
 						.id(photoMetadata.id)
 						.onTapGesture {
-							withAnimation(.easeInOut) {
-								currentPhoto = photoMetadata
+							withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+								activeID = photoMetadata.id
 							}
 						}
 					}
 				}
 				.scrollTargetLayout()
 			}
-			.contentMargins(.horizontal, max(0, (geometry.size.width - itemSize) / 2), for: .scrollContent)
+			.contentMargins(.horizontal, max(0, (geometry.size.width - activeSize) / 2), for: .scrollContent)
 			.scrollIndicators(.hidden)
 			.scrollTargetBehavior(.viewAligned)
-			.scrollPosition(id: $scrollPosition, anchor: .center)
-			.onChange(of: scrollPosition) { _, newId in
-				guard let newId,
-					  newId != currentPhoto.id,
-					  let match = photoMetadatas.first(where: { $0.id == newId }) else { return }
-				currentPhoto = match
-			}
-			.onChange(of: currentPhoto) { _, newPhoto in
-				guard scrollPosition != newPhoto.id else { return }
+			.scrollPosition(id: $localScrollID, anchor: .center)
+			.onChange(of: activeID) { _, newID in
+				guard localScrollID != newID else { return }
 				withAnimation(.easeInOut) {
-					scrollPosition = newPhoto.id
+					localScrollID = newID
 				}
 			}
-			.onAppear {
-				scrollPosition = currentPhoto.id
+			.onChange(of: localScrollID) { _, newID in
+				guard let newID, activeID != newID else { return }
+				activeID = newID
 			}
-			.sensoryFeedback(.impact, trigger: scrollPosition)
+			.onAppear {
+				localScrollID = activeID
+			}
+			.sensoryFeedback(.impact, trigger: localScrollID)
 		}
-		.frame(height: itemSize + 20)
+		.frame(height: activeSize + 20)
 	}
 }
-
 #Preview {
     PhotoFilmstripView(
 		photoMetadatas: [PhotoMetadata(phaccessLocalIdentifier: "preview"), PhotoMetadata(phaccessLocalIdentifier: "preview")],
-		currentPhoto: .constant(PhotoMetadata(phaccessLocalIdentifier: "preview"))
+		activeID: .constant(PhotoMetadata(phaccessLocalIdentifier: "preview").id)
 	)
 }

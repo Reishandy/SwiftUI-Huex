@@ -10,110 +10,95 @@ import Photos
 import SwiftData
 
 struct PhotoDetailView: View {
-	@Environment(\.dismiss) private var dismiss
-	
 	let photoMetadatas: [PhotoMetadata]
 	let galleryNamespace: Namespace.ID
+	let initialPhotoID: PhotoMetadata.ID
 	
-	@State private var currentPhoto: PhotoMetadata
+	@State private var activeID: PhotoMetadata.ID?
 	@State private var isZoomed = false
 	@State private var isToolbarVisible = true
-	@State private var scrollPosition: PhotoMetadata.ID?
+	@Binding var gridScrollPosition: ScrollPosition
 	
-	init(photoMetadatas: [PhotoMetadata], initialPhoto: PhotoMetadata, galleryNamespace: Namespace.ID) {
+	init(
+		photoMetadatas: [PhotoMetadata],
+		initialPhotoID: PhotoMetadata.ID,
+		galleryNamespace: Namespace.ID,
+		gridScrollPosition: Binding<ScrollPosition>
+	) {
 		self.photoMetadatas = photoMetadatas
+		self.initialPhotoID = initialPhotoID
 		self.galleryNamespace = galleryNamespace
-		_currentPhoto = State(initialValue: initialPhoto)
-		_scrollPosition = State(initialValue: initialPhoto.id)
+		self._gridScrollPosition = gridScrollPosition
+		_activeID = State(initialValue: initialPhotoID)
 	}
 	
 	var body: some View {
-		NavigationStack {
-			GeometryReader { geometry in
-				let size = geometry.size
-				
-				ScrollView(.horizontal) {
-					LazyHStack(spacing: 0) {
-						ForEach(photoMetadatas) { photoMetadata in
-							PhotoView(
-								photoMetadata: photoMetadata,
-								targetSize: PHImageManagerMaximumSize,
-								contentMode: .fit
-							)
-							.zoomable(isZoomed: $isZoomed) {
-								withAnimation { isToolbarVisible.toggle() }
+		GeometryReader { geometry in
+			let size = geometry.size
+			
+			ScrollView(.horizontal) {
+				LazyHStack(spacing: 0) {
+					ForEach(photoMetadatas) { photoMetadata in
+						PhotoView(
+							photoMetadata: photoMetadata,
+							targetSize: PHImageManagerMaximumSize,
+							contentMode: .fit
+						)
+						.zoomable(isZoomed: $isZoomed) {
+							withAnimation {
+								isToolbarVisible.toggle()
 							}
-							.frame(width: size.width, height: size.height)
-							.contentShape(Rectangle())
-							.id(photoMetadata.id)
 						}
-					}
-					.scrollTargetLayout()
-				}
-				.scrollTargetBehavior(.paging)
-				.scrollPosition(id: $scrollPosition)
-				.scrollDisabled(isZoomed)
-				.onChange(of: scrollPosition) { _, newId in
-					guard let newId, newId != currentPhoto.id,
-						  let match = photoMetadatas.first(where: { $0.id == newId }) else { return }
-					currentPhoto = match
-				}
-				.onChange(of: currentPhoto) { _, newPhoto in
-					guard scrollPosition != newPhoto.id else { return }
-					withAnimation { scrollPosition = newPhoto.id }
-				}
-			}
-			.frame(maxWidth: .infinity, maxHeight: .infinity)
-			.ignoresSafeArea()
-			.overlay(alignment: .bottom) {
-				// TODO: Fix fast scroll stutter
-				PhotoFilmstripView(photoMetadatas: photoMetadatas, currentPhoto: $currentPhoto)
-					.padding(.bottom, 10)
-					.opacity(isToolbarVisible ? 1 : 0)
-					.allowsHitTesting(isToolbarVisible)
-			}
-			.toolbar {
-				ToolbarItem(placement: .topBarLeading) {
-					Button {
-						dismiss()
-					} label: {
-						Image(systemName: "chevron.backward")
+						.frame(width: size.width, height: size.height)
+						.contentShape(Rectangle())
+						.id(photoMetadata.id)
 					}
 				}
-				
-				ToolbarItem(placement: .principal) {
-					Text("TODO: INFO")
-						.padding()
-						.glassEffect()
-				}
-				
-				ToolbarItem(placement: .primaryAction) {
-					// TODO: Actions
-					Image(systemName: "ellipsis")
-				}
-				
-				ToolbarItem(placement: .bottomBar) {
-					// TODO: Share
-					Image(systemName: "square.and.arrow.up")
-				}
-				
-				ToolbarSpacer(placement: .bottomBar)
-				
-				ToolbarItem(placement: .bottomBar) {
-					// TODO: Palette
-					Text("TODO: PALETTE")
-				}
-				
-				ToolbarSpacer(placement: .bottomBar)
-				
-				ToolbarItem(placement: .bottomBar) {
-					// TODO: Delete
-					Image(systemName: "trash")
+				.scrollTargetLayout()
+			}
+			.scrollTargetBehavior(.paging)
+			.scrollPosition(id: $activeID)
+			.scrollDisabled(isZoomed)
+			.onChange(of: activeID) { _, newID in
+				if let newID {
+					gridScrollPosition = ScrollPosition(id: newID, anchor: .center)
 				}
 			}
-			.toolbar(isToolbarVisible ? .visible : .hidden, for: .navigationBar, .bottomBar)
 		}
-		.navigationTransition(.zoom(sourceID: currentPhoto.phaccessLocalIdentifier, in: galleryNamespace))
+		.frame(maxWidth: .infinity, maxHeight: .infinity)
+		.ignoresSafeArea()
+		.overlay(alignment: .bottom) {
+			PhotoFilmstripView(photoMetadatas: photoMetadatas, activeID: $activeID)
+				.padding(.bottom, 10)
+				.opacity(isToolbarVisible ? 1 : 0)
+				.allowsHitTesting(isToolbarVisible)
+		}
+		.toolbar {
+			ToolbarItem(placement: .principal) {
+				Text("TODO: INFO")
+					.padding()
+			}
+			ToolbarItem(placement: .primaryAction) {
+				Image(systemName: "ellipsis")
+			}
+			ToolbarItem(placement: .bottomBar) {
+				Image(systemName: "square.and.arrow.up")
+			}
+			ToolbarItem(placement: .bottomBar) {
+				Spacer()
+			}
+			ToolbarItem(placement: .bottomBar) {
+				Text("TODO: PALETTE")
+			}
+			ToolbarItem(placement: .bottomBar) {
+				Spacer()
+			}
+			ToolbarItem(placement: .bottomBar) {
+				Image(systemName: "trash")
+			}
+		}
+		.toolbar(isToolbarVisible ? .visible : .hidden, for: .navigationBar, .bottomBar)
+		.navigationTransition(.zoom(sourceID: activeID ?? initialPhotoID, in: galleryNamespace))
 		.interactiveDismissDisabled(isZoomed)
 	}
 }
@@ -123,7 +108,8 @@ struct PhotoDetailView: View {
 	
 	PhotoDetailView(
 		photoMetadatas: [PhotoMetadata(phaccessLocalIdentifier: "preview-1")],
-		initialPhoto: PhotoMetadata(phaccessLocalIdentifier: "preview-1"),
-		galleryNamespace: namespace
+		initialPhotoID: PhotoMetadata(phaccessLocalIdentifier: "preview-1").id,
+		galleryNamespace: namespace,
+		gridScrollPosition: .constant(ScrollPosition())
 	)
 }

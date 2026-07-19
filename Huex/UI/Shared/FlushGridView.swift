@@ -18,7 +18,8 @@ struct FlushGridView<Item: Identifiable & Equatable, Content: View>: View {
 	
 	@State private var shouldPad: Bool = false
 	@State private var initialScrollDone: Bool = false
-	@State private var scrollPosition: ScrollPosition = ScrollPosition()
+	
+	@Binding var scrollPosition: ScrollPosition
 	
 	private var columns: [GridItem] {
 		Array(repeating: GridItem(.flexible(), spacing: spacing), count: columnCount)
@@ -39,12 +40,13 @@ struct FlushGridView<Item: Identifiable & Equatable, Content: View>: View {
 		items.count > (columnCount * visibleRowCount) + columnCount
 	}
 	
-	public init(
+	init(
 		_ items: [Item],
 		isReversed: Bool = false,
 		columnCount: Int = 3,
 		visibleRowCount: Int? = nil,
 		spacing: CGFloat = 1,
+		scrollPosition: Binding<ScrollPosition>,
 		@ViewBuilder content: @escaping (Item) -> Content
 	) {
 		self.items = isReversed ? items.reversed() : items
@@ -52,10 +54,11 @@ struct FlushGridView<Item: Identifiable & Equatable, Content: View>: View {
 		self.columnCount = columnCount
 		self.visibleRowCount = visibleRowCount ?? (columnCount * 2)
 		self.spacing = spacing
+		self._scrollPosition = scrollPosition
 		self.content = content
 	}
 	
-	public var body: some View {
+	var body: some View {
 		ScrollView {
 			LazyVGrid(columns: columns, spacing: spacing) {
 				if missingItems > 0 && shouldPad && safeToPad {
@@ -104,7 +107,8 @@ struct FlushPreview: Identifiable, Equatable {
 }
 
 #Preview {
-	FlushGridView((1...99).map{ FlushPreview(id: $0) }) { _ in
+	@Previewable @State var scroll = ScrollPosition()
+	FlushGridView((1...99).map{ FlushPreview(id: $0) }, scrollPosition: $scroll) { _ in
 		RoundedRectangle(cornerRadius: 4)
 			.aspectRatio(1, contentMode: .fit)
 			.foregroundStyle(.secondary)
