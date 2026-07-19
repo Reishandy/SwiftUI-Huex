@@ -59,11 +59,12 @@ final class PhotoSyncService: NSObject, PHPhotoLibraryChangeObserver {
 		}
 		
 		do {
-			try await metadataWorker.insertMissing(assets: currentAssets) // Pass the tuples
+			try await metadataWorker.insertMissing(assets: currentAssets)
 			try await metadataWorker.removeMissing(currentAssetIDs: currentIDs)
 		} catch {
 			print("> PhotoSyncService: full sync failed: \(error)")
 		}
+		
 		await analysisWorker.run()
 	}
 	

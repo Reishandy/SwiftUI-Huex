@@ -75,10 +75,9 @@ struct GalleryView: View {
 			ToolbarItem(placement: .topBarLeading) {
 				TitleView(
 					titleName: "Gallery",
-					totalImages: 100,
-					processedImages: 10,
-					isProcessing: false
-					// TODO: More detail
+					totalImages: photoMetadatas.count,
+					processedImages: photoMetadatas.filter { $0.bucket != nil }.count,
+					isProcessing: false // TODO: Expose is running
 				)
 			}
 			.sharedBackgroundVisibility(.hidden)
@@ -107,14 +106,15 @@ struct GalleryView: View {
 						Button("Reanalyze", systemImage: "arrow.2.squarepath") {
 							
 						}
+						.disabled(selectedPhotos.isEmpty)
 						
 						Button("Delete", systemImage: "trash", role: .destructive) {
 							
 						}
+						.disabled(selectedPhotos.isEmpty)
 					} label: {
 						Image(systemName: "ellipsis")
 					}
-					.disabled(selectedPhotos.isEmpty)
 				}
 			}
 			
