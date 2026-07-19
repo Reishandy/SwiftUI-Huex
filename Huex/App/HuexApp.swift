@@ -27,6 +27,7 @@ struct HuexApp: App {
 		_photoSyncService = State(initialValue: PhotoSyncService(modelContainer: modelContainer))
 	}
 	
+	// TODO: Cloudkit sync
 	var body: some Scene {
 		WindowGroup {
 			ContentView()

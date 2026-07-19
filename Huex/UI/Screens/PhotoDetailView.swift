@@ -82,6 +82,7 @@ struct PhotoDetailView: View {
 				.allowsHitTesting(isToolbarVisible)
 		}
 		.toolbar {
+			// TODO: Decide toolbar layout
 			ToolbarItem(placement: .principal) {
 				Text("TODO: INFO")
 					.padding()

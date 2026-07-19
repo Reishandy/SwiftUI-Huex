@@ -11,39 +11,43 @@ import SwiftData
 struct ContentView: View {
 	@Environment(PhotoPermissionService.self) private var photoPermissionService
 	
+	@State private var navState = NavigationState()
 	@State private var isPermissionSheetShown = false
 	
-    var body: some View {
-		TabView {
-			Tab("Gallery", systemImage: "photo.on.rectangle.angled.fill") {
-				GalleryView()
-			}
-			
-			Tab("Palette", systemImage: "swatchpalette.fill") {
-				PaletteView()
-			}
-			
-			Tab("Search", systemImage: "magnifyingglass", role: .search) {
-				SearchView()
-			}
+	// TODO: Bottom padding for the sheet
+	// TODO: Select
+	var body: some View {
+		NavigationStack {
+			GalleryView()
+				.environment(navState)
+				.navigationDestination(item: $navState.photoDetailRequest) { request in
+					PhotoDetailView(
+						photoMetadatas: request.photoMetadatas,
+						initialPhotoID: request.id,
+						galleryNamespace: request.namespace,
+						gridScrollPosition: request.scrollPosition
+					)
+				}
+				.navigationDestination(item: $navState.paletteDetailRequest) { bucket in
+					CollectionDetailView()
+				}
+				.sheet(isPresented: $isPermissionSheetShown) {
+					PermissionSheetView()
+						.presentationDetents([.large])
+						.interactiveDismissDisabled()
+				}
+				.onAppear {
+					isPermissionSheetShown = photoPermissionService.shouldShowPermissionSheet
+				}
+				.onChange(of: photoPermissionService.shouldShowPermissionSheet) { _, _ in
+					isPermissionSheetShown = photoPermissionService.shouldShowPermissionSheet
+				}
 		}
-		.tabViewStyle(.sidebarAdaptable)
-		.sheet(isPresented: $isPermissionSheetShown) {
-			PermissionSheetView()
-				.presentationDetents([.large])
-				.interactiveDismissDisabled()
-		}
-		.onAppear {
-			isPermissionSheetShown = photoPermissionService.shouldShowPermissionSheet
-		}
-		.onChange(of: photoPermissionService.shouldShowPermissionSheet) { _, _ in
-			isPermissionSheetShown = photoPermissionService.shouldShowPermissionSheet
-		}
-    }
+	}
 }
 
 #Preview {
-    ContentView()
+	ContentView()
 		.modelContainer(PreviewData.container)
 		.environment(PhotoPermissionService(isPreview: true))
 }

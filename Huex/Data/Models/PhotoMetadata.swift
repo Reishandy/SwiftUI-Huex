@@ -14,16 +14,15 @@ class PhotoMetadata: Identifiable, Equatable {
 	var timestamp: Date
 	var analyzedDate: Date?
 	
-	var swatches: [Swatch]
+	var swatches: [Swatch]?
 	var bucket: ColorBucket?
 	var confidence: Double
-	
 	
 	init(phaccessLocalIdentifier: String) {
 		self.phaccessLocalIdentifier = phaccessLocalIdentifier
 		self.timestamp = .now
 		self.analyzedDate = nil
-		self.swatches = []
+		self.swatches = nil
 		self.bucket = nil
 		self.confidence = 0
 	}
