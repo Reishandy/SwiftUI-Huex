@@ -18,12 +18,18 @@ class PhotoMetadata: Identifiable, Equatable {
 	var bucket: ColorBucket?
 	var confidence: Double
 	
-	init(phaccessLocalIdentifier: String) {
+	init(
+		phaccessLocalIdentifier: String,
+		anayzedDate: Date? = nil,
+		swatches: [Swatch]? = nil,
+		bucket: ColorBucket? = nil,
+		confidence: Double = 0
+	) {
 		self.phaccessLocalIdentifier = phaccessLocalIdentifier
 		self.timestamp = .now
-		self.analyzedDate = nil
-		self.swatches = nil
-		self.bucket = nil
-		self.confidence = 0
+		self.analyzedDate = anayzedDate
+		self.swatches = swatches
+		self.bucket = bucket
+		self.confidence = confidence
 	}
 }

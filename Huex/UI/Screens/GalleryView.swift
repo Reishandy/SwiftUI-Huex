@@ -65,6 +65,7 @@ struct GalleryView: View {
 						Image(systemName: photoMetadata.bucket?.symbol ?? "questionmark")
 							.foregroundStyle(photoMetadata.bucket?.color ?? .secondary)
 							.padding(8)
+							.shadow(radius: 4)
 							.glassEffect(.regular, in: Circle())
 							.padding(6)
 					}
