@@ -38,6 +38,8 @@ struct GalleryView: View {
 	@State private var isPaletteSheetShown = false
 	@State private var searchText = ""
 	@State private var debouncedSearchText = ""
+	@State private var isSelect = false
+	@State private var selectedPhotos: Set<PhotoMetadata.ID> = [] // TODO: Use ID or whole?
 	
 	var body: some View {
 		Group {
@@ -53,23 +55,11 @@ struct GalleryView: View {
 					isReversed: true,
 					scrollPosition: $gridScrollPosition
 				) { photoMetadata in
-					ZStack(alignment: .bottomLeading) {
-						Color.clear
-							.aspectRatio(1, contentMode: .fit)
-							.overlay {
-								PhotoView(photoMetadata: photoMetadata, contentMode: .fill)
-							}
-							.clipShape(RoundedRectangle(cornerRadius: 4))
-							.contentShape(RoundedRectangle(cornerRadius: 4))
-						
-						Image(systemName: photoMetadata.bucket?.symbol ?? "questionmark")
-							.foregroundStyle(photoMetadata.bucket?.color ?? .secondary)
-							.padding(8)
-							.shadow(radius: 4)
-							.glassEffect(.regular, in: Circle())
-							.padding(6)
-					}
-					.onTapGesture {
+					GalleryCellView(
+						photoMetadata: photoMetadata,
+						isSelect: $isSelect,
+						selectedPhotos: $selectedPhotos
+					) {
 						navState.photoDetailRequest = PhotoDetailRequest(
 							id: photoMetadata.id,
 							photoMetadatas: photoMetadatas.reversed(),
@@ -93,43 +83,109 @@ struct GalleryView: View {
 			}
 			.sharedBackgroundVisibility(.hidden)
 			
-			ToolbarItem(placement: .topBarTrailing) {
-				// TODO: Actions
-				Image(systemName: "ellipsis")
+			if isSelect {
+				ToolbarItem(placement: .topBarTrailing) {
+					// TODO: Actions
+					Menu {
+						Button("Select All", systemImage: "square.grid.2x2.fill") {
+							withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+								isSelect = true
+								selectedPhotos = Set(photoMetadatas.map { $0.id })
+							}
+						}
+						.disabled(!selectedPhotos.isEmpty)
+						
+						Button("Select None", systemImage: "square.grid.2x2") {
+							withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+								selectedPhotos = []
+							}
+						}
+						.disabled(selectedPhotos.isEmpty)
+						
+						Divider()
+						
+						Button("Reanalyze", systemImage: "arrow.2.squarepath") {
+							
+						}
+						
+						Button("Delete", systemImage: "trash", role: .destructive) {
+							
+						}
+					} label: {
+						Image(systemName: "ellipsis")
+					}
+					.disabled(selectedPhotos.isEmpty)
+				}
 			}
 			
 			ToolbarSpacer(placement: .topBarTrailing)
 			
 			ToolbarItem(placement: .topBarTrailing) {
-				// TODO: Actions
-				Text("Select")
-					.padding()
+				if isSelect {
+					Button("Done", systemImage: "checkmark") {
+						withAnimation {
+							isSelect = false
+							selectedPhotos = []
+						}
+					}
+					.buttonStyle(.glassProminent)
+				} else {
+					Button("Select") {
+						withAnimation {
+							isSelect = true
+						}
+					}
+				}
 			}
 			
-			DefaultToolbarItem(kind: .search, placement: .bottomBar)
-			
-			ToolbarSpacer(.flexible, placement: .bottomBar)
-			
-			ToolbarItem(placement: .bottomBar) {
-				Button {
-					isPaletteSheetShown = true
-				} label: {
-					HStack {
-						Image(systemName: "swatchpalette.fill")
-							.symbolRenderingMode(.palette)
-							.foregroundStyle(
-								.red,
-								.green,
-								.blue
-							)
+			if isSelect {
+				ToolbarItem(placement: .bottomBar) {
+					// TODO: Share
+					Button("Share", systemImage: "square.and.arrow.up") {
 						
-						Text("Color Collections")
-							.font(.title3)
-							.bold()
 					}
-					.padding()
+					.disabled(selectedPhotos.isEmpty)
 				}
-				.matchedTransitionSource(id: "sheetSource", in: galleryNamespace)
+				
+				ToolbarSpacer(placement: .bottomBar)
+				
+				ToolbarItem(placement: .bottomBar) {
+					Text("\(selectedPhotos.count) Photo\(selectedPhotos.count > 1 ? "s" : "") Selected")
+						.bold()
+						.fixedSize()
+				}
+				.sharedBackgroundVisibility(.hidden)
+				
+				ToolbarSpacer(placement: .bottomBar)
+				
+				ToolbarItem(placement: .bottomBar) {
+					// TODO: Share
+					Button("Move", systemImage: "arrow.forward.folder") {
+						
+					}
+					.disabled(selectedPhotos.isEmpty)
+				}
+			} else {
+				DefaultToolbarItem(kind: .search, placement: .bottomBar)
+				
+				ToolbarSpacer(.flexible, placement: .bottomBar)
+				
+				ToolbarItem(placement: .bottomBar) {
+					Button {
+						isPaletteSheetShown = true
+					} label: {
+						HStack {
+							Image(systemName: "paintpalette.fill")
+								.symbolRenderingMode(.multicolor)
+							
+							Text("Color Collections")
+								.font(.title3)
+								.bold()
+						}
+						.padding()
+					}
+					.matchedTransitionSource(id: "sheetSource", in: galleryNamespace)
+				}
 			}
 		}
 		.sheet(isPresented: $isPaletteSheetShown) {
