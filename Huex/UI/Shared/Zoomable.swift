@@ -30,8 +30,9 @@ struct Zoomable: ViewModifier {
 				.gesture(magnify(in: size))
 				.simultaneousGesture(
 					pan(in: size),
-					including: isZoomed ? .all : .none 
+					including: isZoomed ? .all : .none
 				)
+				.background(ZoomDismissGestureManager(isZoomed: isZoomed))
 		}
 	}
 	
@@ -115,5 +116,35 @@ struct Zoomable: ViewModifier {
 extension View {
 	func zoomable(isZoomed: Binding<Bool>, maxZoom: CGFloat = 4.0, onSingleTap: @escaping () -> Void = {}) -> some View {
 		modifier(Zoomable(isZoomed: isZoomed, maxZoom: maxZoom, onSingleTap: onSingleTap))
+	}
+}
+
+fileprivate struct ZoomDismissGestureManager: UIViewRepresentable {
+	var isZoomed: Bool
+	
+	func makeUIView(context: Context) -> UIView {
+		let view = UIView()
+		view.backgroundColor = .clear
+		return view
+	}
+	
+	func updateUIView(_ uiView: UIView, context: Context) {
+		DispatchQueue.main.async {
+			if let zoomViewControllerView = uiView.viewController?.view {
+				zoomViewControllerView.gestureRecognizers?.forEach { gesture in
+					if (gesture.name ?? "").contains("ZoomInteractive") {
+						gesture.isEnabled = !isZoomed
+					}
+				}
+			}
+		}
+	}
+}
+
+fileprivate extension UIView {
+	var viewController: UIViewController? {
+		sequence(first: self) { $0.next }
+			.compactMap({ $0 as? UIViewController })
+			.first
 	}
 }

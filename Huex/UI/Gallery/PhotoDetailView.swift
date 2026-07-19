@@ -45,8 +45,10 @@ struct PhotoDetailView: View {
 							contentMode: .fit
 						)
 						.zoomable(isZoomed: $isZoomed) {
-							withAnimation {
-								isToolbarVisible.toggle()
+							if !isZoomed {
+								withAnimation {
+									isToolbarVisible.toggle()
+								}
 							}
 						}
 						.frame(width: size.width, height: size.height)
@@ -59,6 +61,11 @@ struct PhotoDetailView: View {
 			.scrollTargetBehavior(.paging)
 			.scrollPosition(id: $activeID)
 			.scrollDisabled(isZoomed)
+			.onChange(of: isZoomed) { _, isNowZoomed in
+				withAnimation(.easeInOut) {
+					isToolbarVisible = !isNowZoomed
+				}
+			}
 			.onChange(of: activeID) { _, newID in
 				if let newID {
 					gridScrollPosition = ScrollPosition(id: newID, anchor: .center)
