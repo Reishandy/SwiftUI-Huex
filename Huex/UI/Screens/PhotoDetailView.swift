@@ -167,6 +167,7 @@ struct PhotoDetailView: View {
 			PaletteSheetView()
 				.presentationDetents([.medium, .large])
 				.presentationDragIndicator(.visible)
+				.presentationSizing(.page)
 				.navigationTransition(.zoom(sourceID: "sheetSource", in: detailNamespace))
 		}
 		.statusBarHidden(!isToolbarVisible)

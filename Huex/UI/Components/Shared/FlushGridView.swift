@@ -8,41 +8,22 @@
 import SwiftUI
 
 struct FlushGridView<Item: Identifiable & Equatable, Content: View>: View {
+	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
+	
 	private let items: [Item]
 	private let isReversed: Bool
-	private let columnCount: Int
-	private let visibleRowCount: Int
+	private let explicitColumnCount: Int?
+	private let explicitVisibleRowCount: Int?
 	private let spacing: CGFloat
-	
 	@ViewBuilder private let content: (Item) -> Content
 	
 	@State private var shouldPad: Bool
-	
 	@Binding var scrollPosition: ScrollPosition
-	
-	private var columns: [GridItem] {
-		Array(repeating: GridItem(.flexible(), spacing: spacing), count: columnCount)
-	}
-	
-	private var missingItems: Int {
-		(columnCount - (items.count % columnCount)) % columnCount
-	}
-	
-	private var triggerIndex: Int {
-		let targetVisualIndex = isReversed ? (columnCount * 2) - 1 : (items.count - 1) - columnCount - 2
-		let calculatedIndex = isReversed ? targetVisualIndex - missingItems : targetVisualIndex + missingItems
-		
-		return max(0, min(calculatedIndex, items.count - 1))
-	}
-	
-	private var safeToPad: Bool {
-		items.count > (columnCount * visibleRowCount) + columnCount
-	}
 	
 	init(
 		_ items: [Item],
 		isReversed: Bool = false,
-		columnCount: Int = 3,
+		columnCount: Int? = nil,
 		visibleRowCount: Int? = nil,
 		spacing: CGFloat = 1,
 		scrollPosition: Binding<ScrollPosition>,
@@ -50,46 +31,88 @@ struct FlushGridView<Item: Identifiable & Equatable, Content: View>: View {
 	) {
 		self.items = isReversed ? items.reversed() : items
 		self.isReversed = isReversed
-		self.columnCount = columnCount
-		self.visibleRowCount = visibleRowCount ?? (columnCount * 2)
+		self.explicitColumnCount = columnCount
+		self.explicitVisibleRowCount = visibleRowCount
 		self.spacing = spacing
 		self._scrollPosition = scrollPosition
 		self.content = content
 		self._shouldPad = State(initialValue: isReversed)
 	}
 	
+	private func computeColumnCount(for width: CGFloat) -> Int {
+		if let explicit = explicitColumnCount {
+			return explicit
+		}
+		
+		if horizontalSizeClass == .compact {
+			return 3
+		} else {
+			let targetItemWidth: CGFloat = 135
+			let calculatedColumns = Int(width / targetItemWidth)
+			return max(4, calculatedColumns)
+		}
+	}
+	
+	private func getColumns(count: Int) -> [GridItem] {
+		Array(repeating: GridItem(.flexible(), spacing: spacing), count: count)
+	}
+	
+	private func getMissingItems(for columnCount: Int) -> Int {
+		(columnCount - (items.count % columnCount)) % columnCount
+	}
+	
+	private func getTriggerIndex(for columnCount: Int) -> Int {
+		let missing = getMissingItems(for: columnCount)
+		let targetVisualIndex = isReversed ? (columnCount * 2) - 1 : (items.count - 1) - columnCount - 2
+		let calculatedIndex = isReversed ? targetVisualIndex - missing : targetVisualIndex + missing
+		return max(0, min(calculatedIndex, items.count - 1))
+	}
+	
+	private func isSafeToPad(for columnCount: Int) -> Bool {
+		let rowCount = explicitVisibleRowCount ?? (columnCount * 2)
+		return items.count > (columnCount * rowCount) + columnCount
+	}
+	
 	var body: some View {
-		ScrollView {
-			LazyVGrid(columns: columns, spacing: spacing) {
-				if missingItems > 0 && shouldPad && safeToPad {
-					ForEach(0..<missingItems, id: \.self) { _ in
-						Color.clear
-							.aspectRatio(1, contentMode: .fit)
+		GeometryReader { geometry in
+			let columnCount = computeColumnCount(for: geometry.size.width)
+			let missingItems = getMissingItems(for: columnCount)
+			let triggerIndex = getTriggerIndex(for: columnCount)
+			let safeToPad = isSafeToPad(for: columnCount)
+			
+			ScrollView {
+				LazyVGrid(columns: getColumns(count: columnCount), spacing: spacing) {
+					if missingItems > 0 && shouldPad && safeToPad {
+						ForEach(0..<missingItems, id: \.self) { _ in
+							Color.clear
+								.aspectRatio(1, contentMode: .fit)
+						}
+					}
+					
+					ForEach(items) { item in
+						content(item)
+							.id(item.id)
+							.onAppear {
+								if item == items[triggerIndex] {
+									shouldPad = !isReversed
+								}
+							}
+							.onDisappear {
+								if item == items[triggerIndex] {
+									shouldPad = isReversed
+								}
+							}
 					}
 				}
-				
-				ForEach(items) { item in
-					content(item)
-						.id(item.id)
-						.onAppear {
-							if item == items[triggerIndex] {
-								shouldPad = !isReversed
-							}
-						}
-						.onDisappear {
-							if item == items[triggerIndex] {
-								shouldPad = isReversed
-							}
-						}
-				}
+				.scrollTargetLayout()
+				.frame(minHeight: geometry.size.height, alignment: .top)
 			}
-			.scrollTargetLayout()
-		}
-		.scrollPosition($scrollPosition)
-		.defaultScrollAnchor(isReversed ? .bottom : .top)
-		.onChange(of: items.count) {
-			withAnimation {
-				scrollPosition.scrollTo(edge: isReversed ? .bottom : .top)
+			.scrollPosition($scrollPosition)
+			.defaultScrollAnchor(isReversed ? .bottom : .top)
+			.onChange(of: items.count) {
+				withAnimation {
+					scrollPosition.scrollTo(edge: isReversed ? .bottom : .top)
+				}
 			}
 		}
 	}

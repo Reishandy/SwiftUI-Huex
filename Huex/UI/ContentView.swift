@@ -35,6 +35,7 @@ struct ContentView: View {
 					PermissionSheetView()
 						.presentationDetents([.large])
 						.interactiveDismissDisabled()
+						.presentationSizing(.page)
 				}
 				.onAppear {
 					isPermissionSheetShown = photoPermissionService.shouldShowPermissionSheet

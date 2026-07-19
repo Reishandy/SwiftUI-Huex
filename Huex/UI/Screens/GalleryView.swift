@@ -12,7 +12,7 @@ struct GalleryView: View {
 	@Namespace private var galleryNamespace
 	@Environment(NavigationState.self) private var navState
 	
-	@Query(sort: \PhotoMetadata.timestamp, order: .forward)
+	@Query(sort: \PhotoMetadata.timestamp, order: .reverse)
 	private var photoMetadatas: [PhotoMetadata]
 	
 	var filteredPhotos: [PhotoMetadata] {
@@ -200,6 +200,7 @@ struct GalleryView: View {
 			CollectionSheetView()
 				.presentationDetents([.medium, .large])
 				.presentationDragIndicator(.visible)
+				.presentationSizing(.page)
 				.navigationTransition(.zoom(sourceID: "sheetSource", in: galleryNamespace))
 		}
 		.searchable(text: $searchText, placement: .toolbar, prompt: "Search by color or hex...")

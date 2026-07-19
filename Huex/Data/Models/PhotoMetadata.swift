@@ -20,13 +20,14 @@ class PhotoMetadata: Identifiable, Equatable {
 	
 	init(
 		phaccessLocalIdentifier: String,
+		timestamp: Date = .now,
 		anayzedDate: Date? = nil,
 		swatches: [Swatch]? = nil,
 		bucket: ColorBucket? = nil,
 		confidence: Double = 0
 	) {
 		self.phaccessLocalIdentifier = phaccessLocalIdentifier
-		self.timestamp = .now
+		self.timestamp = timestamp
 		self.analyzedDate = anayzedDate
 		self.swatches = swatches
 		self.bucket = bucket

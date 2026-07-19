@@ -10,15 +10,13 @@ import SwiftData
 
 @ModelActor
 actor PhotoMetadataWorker {
-	func insertMissing(assetIDs: [String]) throws {
-		guard !assetIDs.isEmpty else { return }
-		
+	func insertMissing(assets: [(id: String, date: Date)]) throws {
+		guard !assets.isEmpty else { return }
 		let existingIDs = Set(try modelContext.fetch(FetchDescriptor<PhotoMetadata>()).map(\.phaccessLocalIdentifier))
 		
-		for id in assetIDs where !existingIDs.contains(id) {
-			modelContext.insert(PhotoMetadata(phaccessLocalIdentifier: id))
+		for asset in assets where !existingIDs.contains(asset.id) {
+			modelContext.insert(PhotoMetadata(phaccessLocalIdentifier: asset.id, timestamp: asset.date))
 		}
-		
 		try modelContext.save()
 	}
 	

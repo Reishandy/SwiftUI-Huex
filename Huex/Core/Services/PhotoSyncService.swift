@@ -27,7 +27,7 @@ final class PhotoSyncService: NSObject, PHPhotoLibraryChangeObserver {
 	
 	func start() async {
 		let options = PHFetchOptions()
-		options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+		options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
 		
 		let result = PHAsset.fetchAssets(with: .image, options: options)
 		fetchResult = result
@@ -50,26 +50,31 @@ final class PhotoSyncService: NSObject, PHPhotoLibraryChangeObserver {
 	}
 	
 	private func performFullSync(with result: PHFetchResult<PHAsset>) async {
+		var currentAssets: [(id: String, date: Date)] = []
 		var currentIDs: [String] = []
+		
 		result.enumerateObjects { asset, _, _ in
 			currentIDs.append(asset.localIdentifier)
+			currentAssets.append((id: asset.localIdentifier, date: asset.creationDate ?? .now))
 		}
 		
 		do {
-			try await metadataWorker.insertMissing(assetIDs: currentIDs)
+			try await metadataWorker.insertMissing(assets: currentAssets) // Pass the tuples
 			try await metadataWorker.removeMissing(currentAssetIDs: currentIDs)
 		} catch {
 			print("> PhotoSyncService: full sync failed: \(error)")
 		}
-		
 		await analysisWorker.run()
 	}
 	
 	private func applyIncrementalChange(_ details: PHFetchResultChangeDetails<PHAsset>) async {
 		do {
-			let insertedIDs = details.insertedObjects.map(\.localIdentifier)
-			if !insertedIDs.isEmpty {
-				try await metadataWorker.insertMissing(assetIDs: insertedIDs)
+			let insertedAssets = details.insertedObjects.map {
+				(id: $0.localIdentifier, date: $0.creationDate ?? .now)
+			}
+			
+			if !insertedAssets.isEmpty {
+				try await metadataWorker.insertMissing(assets: insertedAssets)
 			}
 			
 			let removedIDs = details.removedObjects.map(\.localIdentifier)
