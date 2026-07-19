@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Photos
 
 struct PhotoView: View {
 	let photoMetadata: PhotoMetadata
@@ -33,7 +34,7 @@ struct PhotoView: View {
 		}
 		.animation(.default, value: image)
 		.task(id: photoMetadata.phaccessLocalIdentifier) {
-			guard let asset = fetchPHAsset(localIdentifier: photoMetadata.phaccessLocalIdentifier) else { return }
+			guard let asset = await fetchPHAsset(localIdentifier: photoMetadata.phaccessLocalIdentifier) else { return }
 			image = await fetchImage(for: asset, targetSize: targetSize)
 		}
 	}

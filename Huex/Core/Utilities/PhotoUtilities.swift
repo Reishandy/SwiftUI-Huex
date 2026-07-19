@@ -10,8 +10,10 @@ import UIKit
 
 private let imageManager = PHCachingImageManager()
 
-func fetchPHAsset(localIdentifier: String) -> PHAsset? {
-	PHAsset.fetchAssets(withLocalIdentifiers: [localIdentifier], options: nil).firstObject
+nonisolated func fetchPHAsset(localIdentifier: String) async -> PHAsset? {
+	await Task.detached(priority: .userInitiated) {
+		PHAsset.fetchAssets(withLocalIdentifiers: [localIdentifier], options: nil).firstObject
+	}.value
 }
 
 nonisolated func fetchImage(

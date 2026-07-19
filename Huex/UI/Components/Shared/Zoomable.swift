@@ -9,7 +9,7 @@ import SwiftUI
 
 struct Zoomable: ViewModifier {
 	@Binding var isZoomed: Bool
-	var maxZoom: CGFloat = 4.0
+	var maxZoom: CGFloat = 10.0
 	var onSingleTap: () -> Void = {}
 	
 	@State private var scale: CGFloat = 1.0
