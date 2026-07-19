@@ -16,8 +16,7 @@ struct FlushGridView<Item: Identifiable & Equatable, Content: View>: View {
 	
 	@ViewBuilder private let content: (Item) -> Content
 	
-	@State private var shouldPad: Bool = false
-	@State private var initialScrollDone: Bool = false
+	@State private var shouldPad: Bool
 	
 	@Binding var scrollPosition: ScrollPosition
 	
@@ -56,6 +55,7 @@ struct FlushGridView<Item: Identifiable & Equatable, Content: View>: View {
 		self.spacing = spacing
 		self._scrollPosition = scrollPosition
 		self.content = content
+		self._shouldPad = State(initialValue: isReversed)
 	}
 	
 	var body: some View {
@@ -86,14 +86,7 @@ struct FlushGridView<Item: Identifiable & Equatable, Content: View>: View {
 			.scrollTargetLayout()
 		}
 		.scrollPosition($scrollPosition)
-		.onAppear {
-			if isReversed && !initialScrollDone {
-				DispatchQueue.main.async {
-					scrollPosition.scrollTo(edge: .bottom)
-					initialScrollDone = true
-				}
-			}
-		}
+		.defaultScrollAnchor(isReversed ? .bottom : .top)
 		.onChange(of: items.count) {
 			withAnimation {
 				scrollPosition.scrollTo(edge: isReversed ? .bottom : .top)

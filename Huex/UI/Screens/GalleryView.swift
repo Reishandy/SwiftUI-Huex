@@ -11,38 +11,74 @@ import SwiftData
 struct GalleryView: View {
 	@Namespace private var galleryNamespace
 	@Environment(NavigationState.self) private var navState
-
+	
 	@Query(sort: \PhotoMetadata.timestamp, order: .forward)
 	private var photoMetadatas: [PhotoMetadata]
-	// TODO: Filter
+	
+	var filteredPhotos: [PhotoMetadata] {
+		guard !debouncedSearchText.isEmpty else {
+			return photoMetadatas
+		}
+		
+		let query = debouncedSearchText.lowercased()
+		
+		return photoMetadatas.filter { photo in
+			let matchesSwatch = photo.swatches?.contains { swatch in
+				let matchesHex = swatch.hex.lowercased().contains(query)
+				let matchesName = swatch.name?.lowercased().contains(query) ?? false
+				
+				return matchesHex || matchesName
+			} ?? false
+			
+			return matchesSwatch
+		}
+	}
 	
 	@State private var gridScrollPosition = ScrollPosition()
 	@State private var isPaletteSheetShown = false
 	@State private var searchText = ""
-	// TODO: Actual search with debounce?
+	@State private var debouncedSearchText = ""
 	
 	var body: some View {
-		FlushGridView(
-			photoMetadatas,
-			isReversed: true,
-			scrollPosition: $gridScrollPosition
-		) { photoMetadata in
-			Color.clear
-				.aspectRatio(1, contentMode: .fit)
-				.overlay {
-					PhotoView(photoMetadata: photoMetadata, contentMode: .fill)
+		Group {
+			if filteredPhotos.isEmpty {
+				EmpyStateView(
+					systemImage: "photo.badge.magnifyingglass.fill",
+					title: "No Photo Found",
+					description: "We couldn't find anything for '\(searchText)'. Try a different color or hex code."
+				)
+			} else {
+				FlushGridView(
+					filteredPhotos,
+					isReversed: true,
+					scrollPosition: $gridScrollPosition
+				) { photoMetadata in
+					ZStack(alignment: .bottomLeading) {
+						Color.clear
+							.aspectRatio(1, contentMode: .fit)
+							.overlay {
+								PhotoView(photoMetadata: photoMetadata, contentMode: .fill)
+							}
+							.clipShape(RoundedRectangle(cornerRadius: 4))
+							.contentShape(RoundedRectangle(cornerRadius: 4))
+						
+						Image(systemName: photoMetadata.bucket?.symbol ?? "questionmark")
+							.foregroundStyle(photoMetadata.bucket?.color ?? .secondary)
+							.padding(8)
+							.glassEffect(.regular, in: Circle())
+							.padding(6)
+					}
+					.onTapGesture {
+						navState.photoDetailRequest = PhotoDetailRequest(
+							id: photoMetadata.id,
+							photoMetadatas: photoMetadatas.reversed(),
+							namespace: galleryNamespace,
+							scrollPosition: $gridScrollPosition
+						)
+					}
+					.matchedTransitionSource(id: photoMetadata.id, in: galleryNamespace)
 				}
-				.clipShape(RoundedRectangle(cornerRadius: 4))
-				.contentShape(RoundedRectangle(cornerRadius: 4))
-				.onTapGesture {
-					navState.photoDetailRequest = PhotoDetailRequest(
-						id: photoMetadata.id,
-						photoMetadatas: photoMetadatas.reversed(),
-						namespace: galleryNamespace,
-						scrollPosition: $gridScrollPosition
-					)
-				}
-				.matchedTransitionSource(id: photoMetadata.id, in: galleryNamespace)
+			}
 		}
 		.toolbar {
 			ToolbarItem(placement: .topBarLeading) {
@@ -103,6 +139,13 @@ struct GalleryView: View {
 		}
 		.searchable(text: $searchText, placement: .toolbar, prompt: "Search by color or hex...")
 		.searchToolbarBehavior(.minimize)
+		.task(id: searchText) {
+			try? await Task.sleep(for: .milliseconds(300))
+			
+			withAnimation(.snappy) {
+				debouncedSearchText = searchText
+			}
+		}
 	}
 }
 
