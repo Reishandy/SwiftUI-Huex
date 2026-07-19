@@ -39,7 +39,7 @@ struct PhotoFilmstripView: View {
 						.animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
 						.id(photoMetadata.id)
 						.onTapGesture {
-							withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+							withAnimation {
 								activeID = photoMetadata.id
 							}
 						}

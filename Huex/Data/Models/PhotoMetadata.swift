@@ -12,11 +12,19 @@ import SwiftData
 class PhotoMetadata: Identifiable, Equatable {
 	@Attribute(.unique) var phaccessLocalIdentifier: String
 	var timestamp: Date
+	var analyzedDate: Date?
 	
-	// TODO: Other attributes
+	var swatches: [Swatch]
+	var bucket: ColorBucket?
+	var confidence: Double
+	
 	
 	init(phaccessLocalIdentifier: String) {
 		self.phaccessLocalIdentifier = phaccessLocalIdentifier
 		self.timestamp = .now
+		self.analyzedDate = nil
+		self.swatches = []
+		self.bucket = nil
+		self.confidence = 0
 	}
 }

@@ -58,6 +58,7 @@ struct PhotoDetailView: View {
 				}
 				.scrollTargetLayout()
 			}
+			.scrollIndicators(.hidden)
 			.scrollTargetBehavior(.paging)
 			.scrollPosition(id: $activeID)
 			.scrollDisabled(isZoomed)
