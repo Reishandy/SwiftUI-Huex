@@ -15,8 +15,17 @@ class PhotoMetadata: Identifiable, Equatable {
 	var analyzedDate: Date?
 	
 	var swatches: [Swatch]?
-	var bucket: ColorBucket?
 	var confidence: Double
+	
+	// Cheesig the Predicate stuff here, needs it to be primitive to filter
+	var bucketRawValue: String?
+	var bucket: ColorBucket? {
+		get {
+			if let raw = bucketRawValue { return ColorBucket(rawValue: raw) }
+			return nil
+		}
+		set { bucketRawValue = newValue?.rawValue }
+	}
 	
 	init(
 		phaccessLocalIdentifier: String,
@@ -30,7 +39,7 @@ class PhotoMetadata: Identifiable, Equatable {
 		self.timestamp = timestamp
 		self.analyzedDate = anayzedDate
 		self.swatches = swatches
-		self.bucket = bucket
+		self.bucketRawValue = bucket?.rawValue
 		self.confidence = confidence
 	}
 }

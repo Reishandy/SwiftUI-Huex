@@ -62,7 +62,7 @@ enum ColorBucket: String, Codable, CaseIterable, Identifiable {
 		case .black:  return "moon.fill"
 		case .blue:   return "drop.fill"
 		case .brown:  return "shippingbox.fill"
-		case .gray:   return "cloud.fog.fill"
+		case .gray:   return "mountain.2.fill"
 		case .green:  return "leaf.fill"
 		case .orange: return "sun.max.fill"
 		case .pink:   return "heart.fill"

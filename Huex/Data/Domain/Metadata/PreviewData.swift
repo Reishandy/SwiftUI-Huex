@@ -21,7 +21,7 @@ enum PreviewData {
 			("#1C1C1E", "Black"), ("#F2F2F7", "White"), ("#8E8E93", "Gray")
 		]
 		
-		let sampleIDs = (1...99).map { "Preview-\($0)" }
+		let sampleIDs = (1...999).map { "Preview-\($0)" }
 		
 		for id in sampleIDs {
 			var swatches: [Swatch]? = nil

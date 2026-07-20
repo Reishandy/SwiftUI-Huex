@@ -14,8 +14,6 @@ struct ContentView: View {
 	@State private var navState = NavigationState()
 	@State private var isPermissionSheetShown = false
 	
-	// TODO: Bottom padding for the sheet
-	// TODO: Select
 	var body: some View {
 		NavigationStack {
 			GalleryView()

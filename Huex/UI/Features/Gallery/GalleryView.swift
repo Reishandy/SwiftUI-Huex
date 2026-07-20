@@ -47,7 +47,7 @@ struct GalleryView: View {
 				EmpyStateView(
 					systemImage: "photo.badge.magnifyingglass.fill",
 					title: "No Photo Found",
-					description: "We couldn't find anything for '\(searchText)'. Try a different color or hex code."
+					description: "We couln't find any photos, check your search or take new photos!"
 				)
 			} else {
 				FlushGridView(
@@ -55,7 +55,7 @@ struct GalleryView: View {
 					isReversed: true,
 					scrollPosition: $gridScrollPosition
 				) { photoMetadata in
-					GalleryCellView(
+					GalleryItemView(
 						photoMetadata: photoMetadata,
 						isSelect: $isSelect,
 						selectedPhotos: $selectedPhotos
@@ -219,5 +219,7 @@ struct GalleryView: View {
 #Preview {
 	NavigationStack {
 		GalleryView()
+			.environment(NavigationState())
+			.modelContainer(PreviewData.container)
 	}
 }

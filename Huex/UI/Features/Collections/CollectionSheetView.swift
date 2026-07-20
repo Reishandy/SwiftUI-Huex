@@ -6,12 +6,12 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct CollectionSheetView: View {
 	@Environment(NavigationState.self) private var navState
 	@Environment(\.dismiss) private var dismiss
 	
-	// TODO: View
 	var body: some View {
 		List {
 			ForEach(ColorBucket.allCases) { bucket in
@@ -19,14 +19,17 @@ struct CollectionSheetView: View {
 					dismiss()
 					navState.paletteDetailRequest = bucket
 				} label: {
-					Text(bucket.displayName)
+					CollectionItemView(colorBucket: bucket)
 				}
 			}
+			.padding(.top, 10)
 		}
+		.listStyle(.plain)
 	}
 }
 
 #Preview {
 	CollectionSheetView()
 		.environment(NavigationState())
+		.modelContainer(PreviewData.container)
 }
