@@ -14,6 +14,7 @@ struct ContentView: View {
 	@State private var navState = NavigationState()
 	@State private var isPermissionSheetShown = false
 	
+	// TODO: Revamp navigation
 	var body: some View {
 		NavigationStack {
 			GalleryView()
@@ -27,7 +28,8 @@ struct ContentView: View {
 					)
 				}
 				.navigationDestination(item: $navState.paletteDetailRequest) { bucket in
-					CollectionDetailView()
+					CollectionDetailView(colorBucket: bucket)
+						.environment(navState)
 				}
 		}
 		.sheet(isPresented: $isPermissionSheetShown) {

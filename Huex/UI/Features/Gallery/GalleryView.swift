@@ -55,7 +55,7 @@ struct GalleryView: View {
 					isReversed: true,
 					scrollPosition: $gridScrollPosition
 				) { photoMetadata in
-					GalleryItemView(
+					PhotoCellView(
 						photoMetadata: photoMetadata,
 						isSelect: $isSelect,
 						selectedPhotos: $selectedPhotos

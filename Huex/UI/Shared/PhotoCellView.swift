@@ -1,5 +1,5 @@
 //
-//  GalleryItemView.swift
+//  PhotoCellView.swift
 //  Huex
 //
 //  Created by Muhammad Akbar Reishandy on 19/07/26.
@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-struct GalleryItemView: View {
+struct PhotoCellView: View {
 	let photoMetadata: PhotoMetadata
 	
 	@Binding var isSelect: Bool
@@ -95,7 +95,7 @@ struct GalleryItemView: View {
 	@Previewable @State var isSelect = true
 	@Previewable @State var selectedPhotos: Set<PhotoMetadata.ID> = []
 	
-	GalleryItemView(
+	PhotoCellView(
 		photoMetadata: PhotoMetadata(phaccessLocalIdentifier: "preview-cell"),
 		isSelect: $isSelect,
 		selectedPhotos: $selectedPhotos

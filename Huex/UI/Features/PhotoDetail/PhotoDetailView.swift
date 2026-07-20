@@ -92,14 +92,15 @@ struct PhotoDetailView: View {
 		.toolbar {
 			if let activePhotometadata {
 				ToolbarItem(placement: .principal) {
-						HStack {
-							Image(systemName: activePhotometadata.bucket?.symbol ?? "questionmark")
-								.foregroundStyle(activePhotometadata.bucket?.color ?? .secondary)
-								.shadow(radius: 2)
-							
-							Text(activePhotometadata.bucket?.displayName ?? "Uncategorized")
-								.bold()
-						}
+					HStack {
+						Image(systemName: activePhotometadata.bucket?.symbol ?? "questionmark")
+							.foregroundStyle(activePhotometadata.bucket?.color ?? .secondary)
+							.shadow(radius: 4)
+							.font(.caption)
+						
+						Text(activePhotometadata.bucket?.displayName ?? "Uncategorized")
+							.bold()
+					}
 					.padding(12)
 					.glassEffect()
 				}
