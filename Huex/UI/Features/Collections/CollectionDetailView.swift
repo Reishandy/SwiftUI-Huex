@@ -10,7 +10,6 @@ import SwiftData
 
 struct CollectionDetailView: View {
 	@Namespace private var collectionDetailNamespace
-	@Environment(NavigationState.self) private var navState
 	@Environment(\.modelContext) private var modelContext
 	
 	let colorBucket: ColorBucket
@@ -20,6 +19,8 @@ struct CollectionDetailView: View {
 	@State private var gridScrollPosition = ScrollPosition()
 	@State private var isSelect = false
 	@State private var selectedPhotos: Set<PhotoMetadata.ID> = []
+	@State private var activePhoto: PhotoMetadata?
+	@State private var isShowingDetail = false // Workaround since this is nested
 	
 	init(colorBucket: ColorBucket) {
 		self.colorBucket = colorBucket
@@ -52,12 +53,8 @@ struct CollectionDetailView: View {
 						isSelect: $isSelect,
 						selectedPhotos: $selectedPhotos
 					) {
-						navState.photoDetailRequest = PhotoDetailRequest(
-							id: photoMetadata.id,
-							photoMetadatas: photoMetadatas,
-							namespace: collectionDetailNamespace,
-							scrollPosition: $gridScrollPosition
-						)
+						activePhoto = photoMetadata
+						isShowingDetail = true
 					}
 					.matchedTransitionSource(id: photoMetadata.id, in: collectionDetailNamespace)
 				}
@@ -151,6 +148,16 @@ struct CollectionDetailView: View {
 				}
 			}
 		}
+		.navigationDestination(isPresented: $isShowingDetail) {
+			if let activePhoto {
+				PhotoDetailView(
+					photoMetadatas: photoMetadatas,
+					initialPhotoID: activePhoto.id,
+					namespace: collectionDetailNamespace,
+					gridScrollPosition: $gridScrollPosition
+				)
+			}
+		}
 		.sensoryFeedback(.impact, trigger: isSelect)
 	}
 }
@@ -158,7 +165,6 @@ struct CollectionDetailView: View {
 #Preview {
 	NavigationStack {
 		CollectionDetailView(colorBucket: .red)
-			.environment(NavigationState())
 			.modelContainer(PreviewData.container)
 	}
 }

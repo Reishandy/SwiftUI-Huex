@@ -10,11 +10,10 @@ import SwiftData
 
 struct GalleryView: View {
 	@Namespace private var galleryNamespace
-	@Environment(NavigationState.self) private var navState
 	
 	@Query(sort: \PhotoMetadata.timestamp, order: .reverse)
 	private var photoMetadatas: [PhotoMetadata]
-	
+
 	var filteredPhotos: [PhotoMetadata] {
 		guard !debouncedSearchText.isEmpty else {
 			return photoMetadatas
@@ -40,6 +39,9 @@ struct GalleryView: View {
 	@State private var debouncedSearchText = ""
 	@State private var isSelect = false
 	@State private var selectedPhotos: Set<PhotoMetadata.ID> = [] // TODO: Use ID or whole?
+	@State private var activePhoto: PhotoMetadata?
+	@State private var selectedBucket: ColorBucket?
+	
 	
 	var body: some View {
 		Group {
@@ -60,12 +62,7 @@ struct GalleryView: View {
 						isSelect: $isSelect,
 						selectedPhotos: $selectedPhotos
 					) {
-						navState.photoDetailRequest = PhotoDetailRequest(
-							id: photoMetadata.id,
-							photoMetadatas: photoMetadatas.reversed(),
-							namespace: galleryNamespace,
-							scrollPosition: $gridScrollPosition
-						)
+						activePhoto = photoMetadata
 					}
 					.matchedTransitionSource(id: photoMetadata.id, in: galleryNamespace)
 				}
@@ -196,8 +193,19 @@ struct GalleryView: View {
 				}
 			}
 		}
+		.navigationDestination(item: $activePhoto) { photo in
+			PhotoDetailView(
+				photoMetadatas: photoMetadatas.reversed(),
+				initialPhotoID: photo.id,
+				namespace: galleryNamespace,
+				gridScrollPosition: $gridScrollPosition
+			)
+		}
+		.navigationDestination(item: $selectedBucket) { bucket in
+			CollectionDetailView(colorBucket: bucket)
+		}
 		.sheet(isPresented: $isCollectionSheetShown) {
-			CollectionSheetView()
+			CollectionSheetView(selectedBucket: $selectedBucket)
 				.presentationDetents([.medium, .large])
 				.presentationDragIndicator(.visible)
 				.presentationSizing(.page)
@@ -219,7 +227,6 @@ struct GalleryView: View {
 #Preview {
 	NavigationStack {
 		GalleryView()
-			.environment(NavigationState())
 			.modelContainer(PreviewData.container)
 	}
 }

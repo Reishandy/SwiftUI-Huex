@@ -11,26 +11,11 @@ import SwiftData
 struct ContentView: View {
 	@Environment(PhotoPermissionService.self) private var photoPermissionService
 	
-	@State private var navState = NavigationState()
 	@State private var isPermissionSheetShown = false
 	
-	// TODO: Revamp navigation
 	var body: some View {
 		NavigationStack {
 			GalleryView()
-				.environment(navState)
-				.navigationDestination(item: $navState.photoDetailRequest) { request in
-					PhotoDetailView(
-						photoMetadatas: request.photoMetadatas,
-						initialPhotoID: request.id,
-						namespace: request.namespace,
-						gridScrollPosition: request.scrollPosition
-					)
-				}
-				.navigationDestination(item: $navState.paletteDetailRequest) { bucket in
-					CollectionDetailView(colorBucket: bucket)
-						.environment(navState)
-				}
 		}
 		.sheet(isPresented: $isPermissionSheetShown) {
 			PermissionSheetView()

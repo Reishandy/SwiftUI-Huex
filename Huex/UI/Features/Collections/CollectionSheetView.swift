@@ -9,15 +9,15 @@ import SwiftUI
 import SwiftData
 
 struct CollectionSheetView: View {
-	@Environment(NavigationState.self) private var navState
 	@Environment(\.dismiss) private var dismiss
+	@Binding var selectedBucket: ColorBucket?
 	
 	var body: some View {
 		List {
 			ForEach(ColorBucket.allCases) { bucket in
 				Button {
 					dismiss()
-					navState.paletteDetailRequest = bucket
+					selectedBucket = bucket
 				} label: {
 					CollectionItemView(colorBucket: bucket)
 				}
@@ -29,7 +29,6 @@ struct CollectionSheetView: View {
 }
 
 #Preview {
-	CollectionSheetView()
-		.environment(NavigationState())
+	CollectionSheetView(selectedBucket: .constant(.red))
 		.modelContainer(PreviewData.container)
 }
