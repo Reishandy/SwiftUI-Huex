@@ -123,8 +123,8 @@ struct GalleryView: View {
 					Button("Done", systemImage: "checkmark") {
 						withAnimation {
 							isSelect = false
-							selectedPhotos = []
 						}
+						selectedPhotos = []
 					}
 					.buttonStyle(.glassProminent)
 				} else {

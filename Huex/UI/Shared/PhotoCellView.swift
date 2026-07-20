@@ -67,27 +67,33 @@ struct PhotoCellView: View {
 				}
 			}
 		}
-		.onTapGesture {
-			if isSelect {
-				withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-					if isSelected {
-						selectedPhotos.remove(photoMetadata.id)
-					} else {
-						selectedPhotos.insert(photoMetadata.id)
+		.gesture(
+			LongPressGesture(minimumDuration: 0.2)
+				.onEnded { _ in
+					if !isSelect {
+						withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+							isSelect = true
+							selectedPhotos = [photoMetadata.id]
+						}
 					}
 				}
-			} else {
-				openDetailAction()
-			}
-		}
-		.onLongPressGesture {
-			if !isSelect {
-				withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-					isSelect = true
-					selectedPhotos = [photoMetadata.id]
-				}
-			}
-		}
+				.exclusively(
+					before: TapGesture()
+						.onEnded {
+							if isSelect {
+								withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+									if isSelected {
+										selectedPhotos.remove(photoMetadata.id)
+									} else {
+										selectedPhotos.insert(photoMetadata.id)
+									}
+								}
+							} else {
+								openDetailAction()
+							}
+						}
+				)
+		)
 	}
 }
 
