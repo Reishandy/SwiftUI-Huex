@@ -40,7 +40,7 @@ struct CollectionDetailView: View {
 				EmpyStateView(
 					systemImage: colorBucket.symbol,
 					title: "No \(colorBucket.displayName) Photos.",
-					description: "Take some \(colorBucket.displayName) photos! or wait for the analisys process to complete"
+					description: "Take a photo with some \(colorBucket.displayName)! or wait for the analisys process to complete"
 				)
 			} else {
 				FlushGridView(
@@ -101,19 +101,21 @@ struct CollectionDetailView: View {
 			
 			ToolbarSpacer(placement: .topBarTrailing)
 			
-			ToolbarItem(placement: .topBarTrailing) {
-				if isSelect {
-					Button("Done", systemImage: "checkmark") {
-						withAnimation {
-							isSelect = false
+			if !photoMetadatas.isEmpty {
+				ToolbarItem(placement: .topBarTrailing) {
+					if isSelect {
+						Button("Done", systemImage: "checkmark") {
+							withAnimation {
+								isSelect = false
+							}
+							selectedPhotos = []
 						}
-						selectedPhotos = []
-					}
-					.buttonStyle(.glassProminent)
-				} else {
-					Button("Select") {
-						withAnimation {
-							isSelect = true
+						.buttonStyle(.glassProminent)
+					} else {
+						Button("Select") {
+							withAnimation {
+								isSelect = true
+							}
 						}
 					}
 				}

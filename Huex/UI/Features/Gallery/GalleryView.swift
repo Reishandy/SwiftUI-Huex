@@ -118,19 +118,21 @@ struct GalleryView: View {
 			
 			ToolbarSpacer(placement: .topBarTrailing)
 			
-			ToolbarItem(placement: .topBarTrailing) {
-				if isSelect {
-					Button("Done", systemImage: "checkmark") {
-						withAnimation {
-							isSelect = false
+			if !photoMetadatas.isEmpty {
+				ToolbarItem(placement: .topBarTrailing) {
+					if isSelect {
+						Button("Done", systemImage: "checkmark") {
+							withAnimation {
+								isSelect = false
+							}
+							selectedPhotos = []
 						}
-						selectedPhotos = []
-					}
-					.buttonStyle(.glassProminent)
-				} else {
-					Button("Select") {
-						withAnimation {
-							isSelect = true
+						.buttonStyle(.glassProminent)
+					} else {
+						Button("Select") {
+							withAnimation {
+								isSelect = true
+							}
 						}
 					}
 				}
