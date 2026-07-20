@@ -31,18 +31,18 @@ struct ContentView: View {
 				.navigationDestination(item: $navState.paletteDetailRequest) { bucket in
 					CollectionDetailView()
 				}
-				.sheet(isPresented: $isPermissionSheetShown) {
-					PermissionSheetView()
-						.presentationDetents([.large])
-						.interactiveDismissDisabled()
-						.presentationSizing(.page)
-				}
-				.onAppear {
-					isPermissionSheetShown = photoPermissionService.shouldShowPermissionSheet
-				}
-				.onChange(of: photoPermissionService.shouldShowPermissionSheet) { _, _ in
-					isPermissionSheetShown = photoPermissionService.shouldShowPermissionSheet
-				}
+		}
+		.sheet(isPresented: $isPermissionSheetShown) {
+			PermissionSheetView()
+				.presentationDetents([.large])
+				.interactiveDismissDisabled()
+				.presentationSizing(.page)
+		}
+		.onAppear {
+			isPermissionSheetShown = photoPermissionService.shouldShowPermissionSheet
+		}
+		.onChange(of: photoPermissionService.shouldShowPermissionSheet) { _, _ in
+			isPermissionSheetShown = photoPermissionService.shouldShowPermissionSheet
 		}
 	}
 }

@@ -24,7 +24,11 @@ struct GalleryCellView: View {
 			Color.clear
 				.aspectRatio(1, contentMode: .fit)
 				.overlay {
-					PhotoView(photoMetadata: photoMetadata, contentMode: .fill)
+					PhotoView(
+						photoMetadata: photoMetadata,
+						targetSize: CGSize(width: 300, height: 300),
+						contentMode: .fill
+					)
 				}
 				.clipShape(RoundedRectangle(cornerRadius: 4))
 				.contentShape(RoundedRectangle(cornerRadius: 4))
