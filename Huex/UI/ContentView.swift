@@ -36,4 +36,5 @@ struct ContentView: View {
 	ContentView()
 		.modelContainer(PreviewData.container)
 		.environment(PhotoPermissionService(isPreview: true))
+		.environment(PhotoSyncService(modelContainer: PreviewData.container))
 }

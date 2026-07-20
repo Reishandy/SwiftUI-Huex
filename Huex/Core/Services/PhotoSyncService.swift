@@ -19,6 +19,9 @@ final class PhotoSyncService: NSObject, PHPhotoLibraryChangeObserver {
 	private var fetchResult: PHFetchResult<PHAsset>?
 	private var isObserving = false
 	
+	private(set) var isAnalyzing = false
+	private var analysisTaskCount = 0
+	
 	init(modelContainer: ModelContainer) {
 		self.metadataWorker = PhotoMetadataWorker(modelContainer: modelContainer)
 		self.analysisWorker = PhotoAnalysisWorker(modelContainer: modelContainer)
@@ -37,6 +40,12 @@ final class PhotoSyncService: NSObject, PHPhotoLibraryChangeObserver {
 		guard !isObserving else { return }
 		PHPhotoLibrary.shared().register(self)
 		isObserving = true
+	}
+	
+	func requestDeletion(of assets: [PHAsset]) async throws {
+		try await PHPhotoLibrary.shared().performChanges {
+			PHAssetChangeRequest.deleteAssets(assets as NSArray)
+		}
 	}
 	
 	nonisolated func photoLibraryDidChange(_ changeInstance: PHChange) {
@@ -65,7 +74,7 @@ final class PhotoSyncService: NSObject, PHPhotoLibraryChangeObserver {
 			print("> PhotoSyncService: full sync failed: \(error)")
 		}
 		
-		await analysisWorker.run()
+		await safeRunAnalysis()
 	}
 	
 	private func applyIncrementalChange(_ details: PHFetchResultChangeDetails<PHAsset>) async {
@@ -90,13 +99,17 @@ final class PhotoSyncService: NSObject, PHPhotoLibraryChangeObserver {
 			print("> PhotoSyncService: incremental sync failed: \(error)")
 		}
 		
-		await analysisWorker.run()
+		await safeRunAnalysis()
 	}
 	
-	func requestDeletion(of asset: PHAsset) async throws {
-		try await PHPhotoLibrary.shared().performChanges {
-			PHAssetChangeRequest.deleteAssets([asset] as NSArray)
-		}
+	private func safeRunAnalysis() async {
+		analysisTaskCount += 1
+		isAnalyzing = analysisTaskCount > 0
+		
+		await analysisWorker.run()
+		
+		analysisTaskCount -= 1
+		isAnalyzing = analysisTaskCount > 0
 	}
 	
 	deinit {

@@ -24,7 +24,7 @@ struct TitleView: View {
 			   let processedImages = processedImages,
 			   let isProcessing = isProcessing {
 				HStack {
-					Text(isProcessing ? "Categorizing \(processedImages)/\(totalImages)" : "\(totalImages) Images")
+					Text(isProcessing ? "Analyzing \(processedImages)/\(totalImages)" : "\(totalImages) Images")
 						.foregroundStyle(.secondary)
 						.fixedSize()
 						.contentTransition(.interpolate)

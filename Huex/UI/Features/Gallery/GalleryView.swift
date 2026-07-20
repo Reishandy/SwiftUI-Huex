@@ -10,6 +10,7 @@ import SwiftData
 
 struct GalleryView: View {
 	@Namespace private var galleryNamespace
+	@Environment(PhotoSyncService.self) private var photoSyncService
 	
 	@Query(sort: \PhotoMetadata.timestamp, order: .reverse)
 	private var photoMetadatas: [PhotoMetadata]
@@ -74,7 +75,7 @@ struct GalleryView: View {
 					titleName: "Gallery",
 					totalImages: photoMetadatas.count,
 					processedImages: photoMetadatas.filter { $0.bucket != nil }.count,
-					isProcessing: false // TODO: Expose is running
+					isProcessing: photoSyncService.isAnalyzing
 				)
 			}
 			.sharedBackgroundVisibility(.hidden)
@@ -228,5 +229,6 @@ struct GalleryView: View {
 	NavigationStack {
 		GalleryView()
 			.modelContainer(PreviewData.container)
+			.environment(PhotoSyncService(modelContainer: PreviewData.container))
 	}
 }
