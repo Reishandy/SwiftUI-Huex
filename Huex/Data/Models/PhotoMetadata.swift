@@ -12,12 +12,8 @@ import SwiftData
 class PhotoMetadata: Identifiable, Equatable {
 	@Attribute(.unique) var phaccessLocalIdentifier: String
 	var timestamp: Date
-	var analyzedDate: Date?
 	
 	var swatches: [Swatch]?
-	var confidence: Double
-	
-	// Cheesig the Predicate stuff here, needs it to be primitive to filter
 	var bucketRawValue: String?
 	var bucket: ColorBucket? {
 		get {
@@ -32,14 +28,11 @@ class PhotoMetadata: Identifiable, Equatable {
 		timestamp: Date = .now,
 		anayzedDate: Date? = nil,
 		swatches: [Swatch]? = nil,
-		bucket: ColorBucket? = nil,
-		confidence: Double = 0
+		bucket: ColorBucket? = nil
 	) {
 		self.phaccessLocalIdentifier = phaccessLocalIdentifier
 		self.timestamp = timestamp
-		self.analyzedDate = anayzedDate
 		self.swatches = swatches
 		self.bucketRawValue = bucket?.rawValue
-		self.confidence = confidence
 	}
 }

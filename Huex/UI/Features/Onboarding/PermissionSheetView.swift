@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct PermissionSheetView: View {
-	@Environment(PhotoPermissionService.self) private var photoPermissionService
+	@Environment(PhotoPermissionManager.self) private var photoPermissionManager
 	
+	// TODO: Improve more playful wording
 	var body: some View {
 		VStack(spacing: 24) {
 			Spacer()
@@ -44,18 +45,18 @@ struct PermissionSheetView: View {
 			Spacer()
 			
 			Button {
-				if photoPermissionService.hasAlreadyGivenPermission {
+				if photoPermissionManager.hasAlreadyGivenPermission {
 					if let url = URL(string: UIApplication.openSettingsURLString) {
 						UIApplication.shared.open(url)
 					}
 				} else {
 					Task {
-						await photoPermissionService.requestAccess()
+						await photoPermissionManager.requestAccess()
 					}
 				}
 			} label: {
 				Group {
-					if photoPermissionService.hasAlreadyGivenPermission {
+					if photoPermissionManager.hasAlreadyGivenPermission {
 						Text("Open Settings")
 					} else {
 						Text("Continue")
@@ -78,6 +79,6 @@ struct PermissionSheetView: View {
 			PermissionSheetView()
 				.presentationDetents([.large])
 				.interactiveDismissDisabled()
-				.environment(PhotoPermissionService())
+				.environment(PhotoPermissionManager())
 		}
 }

@@ -1,8 +1,8 @@
 //
-//  PhotoPermissionService.swift
+//  PhotoPermissionManager.swift
 //  Huex
 //
-//  Created by Muhammad Akbar Reishandy on 17/07/26.
+//  Created by Muhammad Akbar Reishandy on 21/07/26.
 //
 
 import Foundation
@@ -11,7 +11,7 @@ import Observation
 
 @Observable
 @MainActor
-final class PhotoPermissionService {
+final class PhotoPermissionManager {
 	private(set) var authorizationStatus: PHAuthorizationStatus
 	
 	init(isPreview: Bool = false) {

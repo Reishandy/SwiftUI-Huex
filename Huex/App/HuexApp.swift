@@ -12,8 +12,8 @@ import SwiftData
 struct HuexApp: App {
 	private let modelContainer: ModelContainer
 	
-	@State private var photoPermissionService = PhotoPermissionService()
-	@State private var photoSyncService: PhotoSyncService
+	@State private var photoPermissionManager = PhotoPermissionManager()
+	@State private var photoStoreManager: PhotoStoreManager
 	
 	@Environment(\.scenePhase) private var scenePhase
 	
@@ -24,25 +24,24 @@ struct HuexApp: App {
 			fatalError("Failed to initialize SwiftData: \(error)")
 		}
 		
-		_photoSyncService = State(initialValue: PhotoSyncService(modelContainer: modelContainer))
+		_photoStoreManager = State(initialValue: PhotoStoreManager(modelContainer: modelContainer))
 	}
 	
-	// TODO: Make the photo load faster
 	// TODO: Cloudkit sync
 	var body: some Scene {
 		WindowGroup {
 			ContentView()
-				.environment(photoPermissionService)
-				.environment(photoSyncService)
-				.task(id: photoPermissionService.authorizationStatus) {
-					guard photoPermissionService.isAuthorized else { return }
-					await photoSyncService.start()
+				.environment(photoPermissionManager)
+				.environment(photoStoreManager)
+				.task(id: photoPermissionManager.authorizationStatus) {
+					guard photoPermissionManager.isAuthorized else { return }
+					await photoStoreManager.start()
 				}
 		}
 		.modelContainer(modelContainer)
 		.onChange(of: scenePhase) { _, newPhase in
 			guard newPhase == .active else { return }
-			photoPermissionService.refreshStatus()
+			photoPermissionManager.refreshStatus()
 		}
 	}
 }

@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-	@Environment(PhotoPermissionService.self) private var photoPermissionService
+	@Environment(PhotoPermissionManager.self) private var photoPermissionManager
 	
 	@State private var isPermissionSheetShown = false
 	
@@ -24,10 +24,10 @@ struct ContentView: View {
 				.presentationSizing(.page)
 		}
 		.onAppear {
-			isPermissionSheetShown = photoPermissionService.shouldShowPermissionSheet
+			isPermissionSheetShown = photoPermissionManager.shouldShowPermissionSheet
 		}
-		.onChange(of: photoPermissionService.shouldShowPermissionSheet) { _, _ in
-			isPermissionSheetShown = photoPermissionService.shouldShowPermissionSheet
+		.onChange(of: photoPermissionManager.shouldShowPermissionSheet) { _, _ in
+			isPermissionSheetShown = photoPermissionManager.shouldShowPermissionSheet
 		}
 	}
 }
@@ -35,6 +35,6 @@ struct ContentView: View {
 #Preview {
 	ContentView()
 		.modelContainer(PreviewData.container)
-		.environment(PhotoPermissionService(isPreview: true))
-		.environment(PhotoSyncService(modelContainer: PreviewData.container))
+		.environment(PhotoPermissionManager(isPreview: true))
+		.environment(PhotoStoreManager())
 }

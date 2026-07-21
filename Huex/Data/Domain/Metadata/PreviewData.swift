@@ -26,14 +26,11 @@ enum PreviewData {
 		for id in sampleIDs {
 			var swatches: [Swatch]? = nil
 			var bucket: ColorBucket? = nil
-			var confidence: Double = 0.0
 			var analyzedDate: Date? = nil
 			
 			analyzedDate = Date().addingTimeInterval(-Double.random(in: 0...604800))
 			
 			bucket = ColorBucket.allCases.randomElement()!
-			
-			confidence = Double.random(in: 0.4...1.0)
 			
 			let numSwatches = Int.random(in: 1...5)
 			var generatedSwatches: [Swatch] = []
@@ -80,7 +77,6 @@ enum PreviewData {
 				anayzedDate: analyzedDate,
 				swatches: swatches,
 				bucket: bucket,
-				confidence: confidence
 			)
 			
 			container.mainContext.insert(metadata)

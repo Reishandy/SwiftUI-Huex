@@ -2,19 +2,27 @@
 //  GalleryView.swift
 //  Huex
 //
-//  Created by Muhammad Akbar Reishandy on 16/07/26.
+//  Created by Muhammad Akbar Reishandy on 21/07/26.
 //
 
 import SwiftUI
 import SwiftData
+import Photos
 
 struct GalleryView: View {
-	@Namespace private var galleryNamespace
-	@Environment(PhotoSyncService.self) private var photoSyncService
+	@Environment(\.modelContext) private var modelContext
+	@Environment(PhotoStoreManager.self) private var photoStoreManager
 	
 	@Query(sort: \PhotoMetadata.timestamp, order: .reverse)
 	private var photoMetadatas: [PhotoMetadata]
-
+	
+	@State private var scrollPosition = ScrollPosition()
+	@State private var searchText = ""
+	@State private var debouncedSearchText = ""
+	@State private var isSelect = false
+	@State private var selectedPhotos: Set<PhotoMetadata> = []
+	@State private var activePhoto: PhotoMetadata?
+	
 	var filteredPhotos: [PhotoMetadata] {
 		guard !debouncedSearchText.isEmpty else {
 			return photoMetadatas
@@ -34,16 +42,6 @@ struct GalleryView: View {
 		}
 	}
 	
-	@State private var gridScrollPosition = ScrollPosition()
-	@State private var isCollectionSheetShown = false
-	@State private var searchText = ""
-	@State private var debouncedSearchText = ""
-	@State private var isSelect = false
-	@State private var selectedPhotos: Set<PhotoMetadata.ID> = [] // TODO: Use ID or whole?
-	@State private var activePhoto: PhotoMetadata?
-	@State private var selectedBucket: ColorBucket?
-	
-	
 	var body: some View {
 		Group {
 			if filteredPhotos.isEmpty {
@@ -56,163 +54,22 @@ struct GalleryView: View {
 				FlushGridView(
 					filteredPhotos,
 					isReversed: true,
-					scrollPosition: $gridScrollPosition
+					scrollPosition: $scrollPosition
 				) { photoMetadata in
 					PhotoCellView(
+						phAsset: photoStoreManager.phAssets[photoMetadata.phaccessLocalIdentifier],
 						photoMetadata: photoMetadata,
 						isSelect: $isSelect,
 						selectedPhotos: $selectedPhotos
 					) {
-						activePhoto = photoMetadata
+						// TODO: Detail view
 					}
-					.matchedTransitionSource(id: photoMetadata.id, in: galleryNamespace)
 				}
 			}
 		}
-		.toolbar {
-			ToolbarItem(placement: .topBarLeading) {
-				TitleView(
-					titleName: "Gallery",
-					totalImages: photoMetadatas.count,
-					processedImages: photoMetadatas.filter { $0.bucket != nil }.count,
-					isProcessing: photoSyncService.isAnalyzing
-				)
-			}
-			.sharedBackgroundVisibility(.hidden)
-			
-			if isSelect {
-				ToolbarItem(placement: .topBarTrailing) {
-					// TODO: Actions
-					Menu {
-						Button("Select All", systemImage: "square.grid.2x2.fill") {
-							withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-								isSelect = true
-								selectedPhotos = Set(photoMetadatas.map { $0.id })
-							}
-						}
-						.disabled(!selectedPhotos.isEmpty)
-						
-						Button("Select None", systemImage: "square.grid.2x2") {
-							withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-								selectedPhotos = []
-							}
-						}
-						.disabled(selectedPhotos.isEmpty)
-						
-						Divider()
-						
-						Button("Reanalyze", systemImage: "arrow.2.squarepath") {
-							
-						}
-						.disabled(selectedPhotos.isEmpty)
-						
-						Button("Delete", systemImage: "trash", role: .destructive) {
-							
-						}
-						.disabled(selectedPhotos.isEmpty)
-					} label: {
-						Image(systemName: "ellipsis")
-					}
-				}
-			}
-			
-			ToolbarSpacer(placement: .topBarTrailing)
-			
-			if !photoMetadatas.isEmpty {
-				ToolbarItem(placement: .topBarTrailing) {
-					if isSelect {
-						Button("Done", systemImage: "checkmark") {
-							withAnimation {
-								isSelect = false
-							}
-							selectedPhotos = []
-						}
-						.buttonStyle(.glassProminent)
-					} else {
-						Button("Select") {
-							withAnimation {
-								isSelect = true
-							}
-						}
-					}
-				}
-			}
-			
-			if isSelect {
-				ToolbarItem(placement: .bottomBar) {
-					// TODO: Share
-					Button("Share", systemImage: "square.and.arrow.up") {
-						
-					}
-					.disabled(selectedPhotos.isEmpty)
-				}
-				
-				ToolbarSpacer(placement: .bottomBar)
-				
-				ToolbarItem(placement: .bottomBar) {
-					Text("\(selectedPhotos.count) Photo\(selectedPhotos.count > 1 ? "s" : "") Selected")
-						.bold()
-						.fixedSize()
-				}
-				.sharedBackgroundVisibility(.hidden)
-				
-				ToolbarSpacer(placement: .bottomBar)
-				
-				ToolbarItem(placement: .bottomBar) {
-					// TODO: Move
-					Button("Move", systemImage: "arrow.forward.folder") {
-						
-					}
-					.disabled(selectedPhotos.isEmpty)
-				}
-			} else {
-				DefaultToolbarItem(kind: .search, placement: .bottomBar)
-				
-				ToolbarSpacer(.flexible, placement: .bottomBar)
-				
-				ToolbarItem(placement: .bottomBar) {
-					Button {
-						isCollectionSheetShown = true
-					} label: {
-						HStack {
-							Image(systemName: "paintpalette.fill")
-								.symbolRenderingMode(.multicolor)
-							
-							Text("Color Collections")
-								.font(.title3)
-								.bold()
-						}
-						.padding()
-					}
-					.matchedTransitionSource(id: "sheetSource", in: galleryNamespace)
-					.gesture(
-						DragGesture()
-							.onEnded { value in
-								if value.translation.height < -5 {
-									isCollectionSheetShown = true
-								}
-							}
-					)
-				}
-			}
-		}
+		.toolbar { galleryToolbar }
 		.navigationDestination(item: $activePhoto) { photo in
-			PhotoDetailView(
-				photoMetadatas: photoMetadatas.reversed(),
-				initialPhotoID: photo.id,
-				namespace: galleryNamespace,
-				gridScrollPosition: $gridScrollPosition
-			)
-		}
-		.navigationDestination(item: $selectedBucket) { bucket in
-			CollectionDetailView(colorBucket: bucket)
-		}
-		.sheet(isPresented: $isCollectionSheetShown) {
-			CollectionSheetView(selectedBucket: $selectedBucket)
-				.presentationDetents([.medium, .large])
-				.presentationDragIndicator(.visible)
-				.presentationSizing(.page)
-				.navigationTransition(.zoom(sourceID: "sheetSource", in: galleryNamespace))
+			// TODO: Photo Detail View
 		}
 		.searchable(text: $searchText, placement: .toolbar, prompt: "Search by color or hex...")
 		.searchToolbarBehavior(.minimize)
@@ -225,12 +82,124 @@ struct GalleryView: View {
 		}
 		.sensoryFeedback(.impact, trigger: isSelect)
 	}
+	
+	@ToolbarContentBuilder
+	private var galleryToolbar: some ToolbarContent {
+		ToolbarItem(placement: .topBarLeading) {
+			GalleryTitleView(
+				isAnalyzing: photoStoreManager.isAnalyzing,
+				totalImages: String(photoMetadatas.count),
+				processedImages: String(photoMetadatas.filter { $0.bucketRawValue != nil }.count)
+			)
+		}
+		.sharedBackgroundVisibility(.hidden)
+		
+		if isSelect {
+			ToolbarItem(placement: .topBarTrailing) {
+				Menu {
+					Button("Select All", systemImage: "square.grid.2x2.fill") {
+						withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+							isSelect = true
+							selectedPhotos = Set(filteredPhotos)
+						}
+					}
+					.disabled(!selectedPhotos.isEmpty)
+					
+					Button("Select None", systemImage: "square.grid.2x2") {
+						withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+							selectedPhotos = []
+						}
+					}
+					.disabled(selectedPhotos.isEmpty)
+					
+					Divider()
+					
+					Button("Reanalyze", systemImage: "arrow.2.squarepath") {
+						for selectedPhoto in selectedPhotos {
+							selectedPhoto.bucketRawValue = nil
+							selectedPhoto.swatches = nil
+						}
+						
+						try? modelContext.save()
+						Task {
+							try? await photoStoreManager.analyzePhotos()
+						}
+					}
+					.disabled(selectedPhotos.isEmpty)
+					
+					Button("Delete", systemImage: "trash", role: .destructive) {
+						Task {
+							await deletePhotos(localIdentifiers: selectedPhotos.map { $0.phaccessLocalIdentifier })
+						}
+					}
+					.disabled(selectedPhotos.isEmpty)
+				} label: {
+					Image(systemName: "ellipsis")
+				}
+			}
+		}
+		
+		ToolbarSpacer(placement: .topBarTrailing)
+		
+		if !photoMetadatas.isEmpty {
+			ToolbarItem(placement: .topBarTrailing) {
+				if isSelect {
+					Button("Done", systemImage: "checkmark") {
+						withAnimation {
+							isSelect = false
+						}
+						selectedPhotos = []
+					}
+					.buttonStyle(.glassProminent)
+				} else {
+					Button("Select") {
+						withAnimation {
+							isSelect = true
+						}
+					}
+				}
+			}
+		}
+		
+		if isSelect {
+			ToolbarItem(placement: .bottomBar) {
+				// TODO: Share
+				Button("Share", systemImage: "square.and.arrow.up") {
+					
+				}
+				.disabled(selectedPhotos.isEmpty)
+			}
+			
+			ToolbarSpacer(placement: .bottomBar)
+			
+			ToolbarItem(placement: .bottomBar) {
+				Text("\(selectedPhotos.count) Photo\(selectedPhotos.count > 1 ? "s" : "") Selected")
+					.bold()
+					.fixedSize()
+			}
+			.sharedBackgroundVisibility(.hidden)
+			
+			ToolbarSpacer(placement: .bottomBar)
+			
+			ToolbarItem(placement: .bottomBar) {
+				// TODO: Move picker?
+				Button("Move", systemImage: "arrow.forward.folder") {
+					
+				}
+				.disabled(selectedPhotos.isEmpty)
+			}
+		} else {
+			DefaultToolbarItem(kind: .search, placement: .bottomBar)
+			
+			ToolbarSpacer(.flexible, placement: .bottomBar)
+		}
+	}
 }
 
 #Preview {
 	NavigationStack {
 		GalleryView()
 			.modelContainer(PreviewData.container)
-			.environment(PhotoSyncService(modelContainer: PreviewData.container))
+			.environment(PhotoStoreManager())
 	}
 }

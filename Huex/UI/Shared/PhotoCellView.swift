@@ -2,21 +2,23 @@
 //  PhotoCellView.swift
 //  Huex
 //
-//  Created by Muhammad Akbar Reishandy on 19/07/26.
+//  Created by Muhammad Akbar Reishandy on 21/07/26.
 //
 
 import SwiftUI
 import SwiftData
+import Photos
 
 struct PhotoCellView: View {
+	let phAsset: PHAsset?
 	let photoMetadata: PhotoMetadata
 	
 	@Binding var isSelect: Bool
-	@Binding var selectedPhotos: Set<PhotoMetadata.ID>
+	@Binding var selectedPhotos: Set<PhotoMetadata>
 	let openDetailAction: () -> Void
 	
 	private var isSelected: Bool {
-		selectedPhotos.contains(photoMetadata.id)
+		selectedPhotos.contains(photoMetadata)
 	}
 	
 	var body: some View {
@@ -24,7 +26,8 @@ struct PhotoCellView: View {
 			Color.clear
 				.aspectRatio(1, contentMode: .fit)
 				.overlay {
-					PhotoView(
+					PhotoItemView(
+						phAsset: phAsset,
 						photoMetadata: photoMetadata,
 						targetSize: CGSize(width: 300, height: 300),
 						contentMode: .fill
@@ -73,7 +76,7 @@ struct PhotoCellView: View {
 					if !isSelect {
 						withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
 							isSelect = true
-							selectedPhotos = [photoMetadata.id]
+							selectedPhotos = [photoMetadata]
 						}
 					}
 				}
@@ -83,9 +86,9 @@ struct PhotoCellView: View {
 							if isSelect {
 								withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
 									if isSelected {
-										selectedPhotos.remove(photoMetadata.id)
+										selectedPhotos.remove(photoMetadata)
 									} else {
-										selectedPhotos.insert(photoMetadata.id)
+										selectedPhotos.insert(photoMetadata)
 									}
 								}
 							} else {
@@ -99,9 +102,10 @@ struct PhotoCellView: View {
 
 #Preview {
 	@Previewable @State var isSelect = true
-	@Previewable @State var selectedPhotos: Set<PhotoMetadata.ID> = []
+	@Previewable @State var selectedPhotos: Set<PhotoMetadata> = []
 	
 	PhotoCellView(
+		phAsset: PHAsset(),
 		photoMetadata: PhotoMetadata(phaccessLocalIdentifier: "preview-cell"),
 		isSelect: $isSelect,
 		selectedPhotos: $selectedPhotos
