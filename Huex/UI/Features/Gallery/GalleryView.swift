@@ -10,6 +10,7 @@ import SwiftData
 import Photos
 
 struct GalleryView: View {
+	@Namespace private var galleryNamespace
 	@Environment(\.modelContext) private var modelContext
 	@Environment(PhotoStoreManager.self) private var photoStoreManager
 	
@@ -22,6 +23,8 @@ struct GalleryView: View {
 	@State private var isSelect = false
 	@State private var selectedPhotos: Set<PhotoMetadata> = []
 	@State private var activePhoto: PhotoMetadata?
+	@State private var isCollectionSheetShown = false
+	@State private var selectedBucket: ColorBucket?
 	
 	var filteredPhotos: [PhotoMetadata] {
 		guard !debouncedSearchText.isEmpty else {
@@ -62,14 +65,29 @@ struct GalleryView: View {
 						isSelect: $isSelect,
 						selectedPhotos: $selectedPhotos
 					) {
-						// TODO: Detail view
+						activePhoto = photoMetadata
 					}
+					.matchedTransitionSource(id: photoMetadata.id, in: galleryNamespace)
 				}
 			}
 		}
 		.toolbar { galleryToolbar }
+		.sheet(isPresented: $isCollectionSheetShown) {
+			CollectionSheetView(selectedBucket: $selectedBucket)
+				.presentationDetents([.medium, .large])
+				.presentationDragIndicator(.visible)
+				.navigationTransition(.zoom(sourceID: "sheetSource", in: galleryNamespace))
+		}
 		.navigationDestination(item: $activePhoto) { photo in
-			// TODO: Photo Detail View
+			PhotoDetailView(
+				photoMetadatas: photoMetadatas.reversed(),
+				initialPhotoID: photo.id,
+				namespace: galleryNamespace,
+				scrollPosition: $scrollPosition
+			)
+		}
+		.navigationDestination(item: $selectedBucket) { bucket in
+			CollectionDetailView(colorBucket: bucket)
 		}
 		.searchable(text: $searchText, placement: .toolbar, prompt: "Search by color or hex...")
 		.searchToolbarBehavior(.minimize)
@@ -192,6 +210,31 @@ struct GalleryView: View {
 			DefaultToolbarItem(kind: .search, placement: .bottomBar)
 			
 			ToolbarSpacer(.flexible, placement: .bottomBar)
+			
+			ToolbarItem(placement: .bottomBar) {
+				Button {
+					isCollectionSheetShown = true
+				} label: {
+					HStack {
+						Image(systemName: "paintpalette.fill")
+							.symbolRenderingMode(.multicolor)
+						
+						Text("Color Collections")
+							.font(.title3)
+							.bold()
+					}
+					.padding()
+				}
+				.matchedTransitionSource(id: "sheetSource", in: galleryNamespace)
+				.gesture(
+					DragGesture()
+						.onEnded { value in
+							if value.translation.height < -5 {
+								isCollectionSheetShown = true
+							}
+						}
+				)
+			}
 		}
 	}
 }

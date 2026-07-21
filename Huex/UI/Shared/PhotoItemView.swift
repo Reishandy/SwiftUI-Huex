@@ -18,6 +18,8 @@ struct PhotoItemView: View {
 	
 	var body: some View {
 		ZStack {
+			Color.clear
+			
 			if let image {
 				Image(uiImage: image)
 					.resizable()
