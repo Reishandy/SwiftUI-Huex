@@ -45,6 +45,7 @@ struct PhotoDetailView: View {
 		GeometryReader { geometry in
 			let size = geometry.size
 			
+			// TODO: Animation on scrubber scroll
 			ScrollView(.horizontal) {
 				LazyHStack(spacing: 0) {
 					ForEach(photoMetadatas) { photoMetadata in
