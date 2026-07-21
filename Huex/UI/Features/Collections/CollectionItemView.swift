@@ -59,6 +59,7 @@ struct CollectionItemView: View {
 							.foregroundStyle(colorBucket.color)
 							.shadow(radius: 4)
 					}
+					
 					Text(colorBucket.displayName)
 						.font(.title2)
 						.bold()

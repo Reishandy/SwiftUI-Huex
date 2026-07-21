@@ -11,6 +11,7 @@ import SwiftData
 struct CollectionDetailView: View {
 	@Namespace private var collectionDetailNamespace
 	
+	@Environment(\.modelContext) private var modelContext
 	@Environment(PhotoStoreManager.self) private var photoStoreManager
 	
 	let colorBucket: ColorBucket
@@ -22,6 +23,10 @@ struct CollectionDetailView: View {
 	@State private var selectedPhotos: Set<PhotoMetadata> = []
 	@State private var activePhoto: PhotoMetadata?
 	@State private var isShowingDetail = false // Workaround since this is nested
+	
+	@State private var showDeleteAlert = false
+	@State private var showReanalyzeAlert = false
+	@State private var moveToBucket: ColorBucket? = nil
 	
 	init(colorBucket: ColorBucket) {
 		self.colorBucket = colorBucket
@@ -75,13 +80,13 @@ struct CollectionDetailView: View {
 					}
 				},
 				onDelete: {
-					// TODO: Delete
+					showDeleteAlert = true
 				},
 				onReanalyze: {
-					// TODO: Reanalyz
+					showReanalyzeAlert = true
 				},
-				onMove: {
-					// TODO: Move
+				onMove: { colorBucket in
+					moveToBucket = colorBucket
 				}
 			)
 		}
@@ -95,6 +100,56 @@ struct CollectionDetailView: View {
 				)
 			}
 		}
+		.photoActionAlerts(
+			selectedCount: selectedPhotos.count,
+			showDeleteAlert: $showDeleteAlert,
+			showReanalyzeAlert: $showReanalyzeAlert,
+			moveToBucket: $moveToBucket,
+			onDelete: {
+				Task {
+					let identifiers = selectedPhotos.map { $0.phaccessLocalIdentifier }
+					
+					let success = await deletePhotos(localIdentifiers: identifiers)
+					if success {
+						withAnimation {
+							isSelect = false
+							selectedPhotos.removeAll()
+						}
+					}
+				}
+			},
+			onReanalyze: {
+				withAnimation {
+					for photo in selectedPhotos {
+						photo.bucketRawValue = nil
+						photo.swatches = nil
+					}
+					
+					try? modelContext.save()
+					
+					Task {
+						try? await photoStoreManager.analyzePhotos()
+					}
+					
+					isSelect = false
+					selectedPhotos.removeAll()
+				}
+			},
+			onMove: {
+				withAnimation {
+					if let targetBucket = moveToBucket {
+						for photo in selectedPhotos {
+							photo.bucketRawValue = targetBucket.rawValue
+						}
+						
+						try? modelContext.save()
+						
+						isSelect = false
+						selectedPhotos.removeAll()
+					}
+				}
+			}
+		)
 	}
 }
 

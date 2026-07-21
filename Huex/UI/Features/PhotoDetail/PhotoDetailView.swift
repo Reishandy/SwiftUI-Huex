@@ -11,6 +11,9 @@ import SwiftData
 
 struct PhotoDetailView: View {
 	@Namespace private var detailNamespace
+	
+	@Environment(\.dismiss) private var dismiss
+	@Environment(\.modelContext) private var modelContext
 	@Environment(PhotoStoreManager.self) private var photoStoreManager
 	
 	let photoMetadatas: [PhotoMetadata]
@@ -23,6 +26,10 @@ struct PhotoDetailView: View {
 	@State private var isZoomed = false
 	@State private var isToolbarVisible = true
 	@State private var isPaletteSheetShown = false
+	
+	@State private var showDeleteAlert = false
+	@State private var showReanalyzeAlert = false
+	@State private var moveToBucket: ColorBucket? = nil
 	
 	private var activePhotometadata: PhotoMetadata? {
 		photoMetadatas.filter { $0.id == activeID }.first
@@ -101,6 +108,45 @@ struct PhotoDetailView: View {
 		.toolbar(isToolbarVisible ? .visible : .hidden, for: .navigationBar, .bottomBar)
 		.navigationTransition(.zoom(sourceID: activeID ?? initialPhotoID, in: namespace))
 		.interactiveDismissDisabled(isZoomed)
+		.photoActionAlerts(
+			selectedCount: 1,
+			showDeleteAlert: $showDeleteAlert,
+			showReanalyzeAlert: $showReanalyzeAlert,
+			moveToBucket: $moveToBucket,
+			onDelete: {
+				if let activePhotometadata {
+					Task {
+						let success = await deletePhotos(localIdentifiers: [activePhotometadata.phaccessLocalIdentifier])
+						if success {
+							dismiss()
+						}
+					}
+				}
+			},
+			onReanalyze: {
+				withAnimation {
+					if let activePhotometadata {
+						activePhotometadata.bucketRawValue = nil
+						activePhotometadata.swatches = nil
+						
+						try? modelContext.save()
+						
+						Task {
+							try? await photoStoreManager.analyzePhotos()
+						}
+					}
+				}
+			},
+			onMove: {
+				withAnimation {
+					if let activePhotometadata, let targetBucket = moveToBucket {
+						activePhotometadata.bucketRawValue = targetBucket.rawValue
+						
+						try? modelContext.save()
+					}
+				}
+			}
+		)
 	}
 	
 	@ToolbarContentBuilder
@@ -121,18 +167,17 @@ struct PhotoDetailView: View {
 			}
 			
 			ToolbarItem(placement: .topBarTrailing) {
-				// TODO: Actions
 				Menu {
-					Button("Move", systemImage: "arrow.forward.folder") {
-						
+					MoveMenuView { colorBucket in
+						moveToBucket = colorBucket
 					}
 					
 					Button("Reanalyze", systemImage: "arrow.2.squarepath") {
-						
+						showReanalyzeAlert = true
 					}
 					
 					Button("Delete", systemImage: "trash", role: .destructive) {
-						
+						showDeleteAlert = true
 					}
 				} label: {
 					Image(systemName: "ellipsis")
@@ -192,4 +237,5 @@ struct PhotoDetailView: View {
 		)
 	}
 	.environment(PhotoStoreManager())
+	.modelContainer(PreviewData.container)
 }

@@ -15,7 +15,7 @@ struct SelectionToolbar: ToolbarContent {
 	let onSelectAll: () -> Void
 	let onDelete: () -> Void
 	let onReanalyze: () -> Void
-	let onMove: () -> Void
+	let onMove: (ColorBucket) -> Void
 	
 	var body: some ToolbarContent {
 		if isSelect {
@@ -30,7 +30,7 @@ struct SelectionToolbar: ToolbarContent {
 					
 					Button("Select None", systemImage: "square.grid.2x2") {
 						withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-							selectedPhotos = []
+							selectedPhotos.removeAll()
 						}
 					}
 					.disabled(selectedPhotos.isEmpty)
@@ -38,12 +38,12 @@ struct SelectionToolbar: ToolbarContent {
 					Divider()
 					
 					Button("Reanalyze", systemImage: "arrow.2.squarepath") {
-						// TODO: ReAnalyze
+						onReanalyze()
 					}
 					.disabled(selectedPhotos.isEmpty)
 					
 					Button("Delete", systemImage: "trash", role: .destructive) {
-						// TODO: Delete
+						onDelete()
 					}
 					.disabled(selectedPhotos.isEmpty)
 				} label: {
@@ -61,7 +61,7 @@ struct SelectionToolbar: ToolbarContent {
 						withAnimation {
 							isSelect = false
 						}
-						selectedPhotos = []
+						selectedPhotos.removeAll()
 					}
 					.buttonStyle(.glassProminent)
 				} else {
@@ -95,9 +95,8 @@ struct SelectionToolbar: ToolbarContent {
 			ToolbarSpacer(placement: .bottomBar)
 			
 			ToolbarItem(placement: .bottomBar) {
-				// TODO: Move picker?
-				Button("Move", systemImage: "arrow.forward.folder") {
-					
+				MoveMenuView(isReverse: true) { colorBucket in
+					onMove(colorBucket)
 				}
 				.disabled(selectedPhotos.isEmpty)
 			}
@@ -111,12 +110,12 @@ struct SelectionToolbar: ToolbarContent {
 			.toolbar {
 				SelectionToolbar(
 					isSelect: .constant(true),
-					selectedPhotos: .constant([]),
+					selectedPhotos: .constant([PhotoMetadata(phaccessLocalIdentifier: "")]),
 					shouldShowSelect: true,
 					onSelectAll: {},
 					onDelete: {},
 					onReanalyze: {},
-					onMove: {}
+					onMove: { _ in }
 				)
 			}
 	}

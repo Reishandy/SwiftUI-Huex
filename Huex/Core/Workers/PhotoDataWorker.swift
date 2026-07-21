@@ -39,7 +39,8 @@ actor PhotoDataWorker {
 		while true {
 			var descriptor = FetchDescriptor<PhotoMetadata>(
 				predicate: #Predicate<PhotoMetadata> { photoMetadata in
-					photoMetadata.bucketRawValue == nil
+					photoMetadata.bucketRawValue == nil ||
+					photoMetadata.swatches == nil
 				},
 				sortBy: [SortDescriptor(\.timestamp)]
 			)

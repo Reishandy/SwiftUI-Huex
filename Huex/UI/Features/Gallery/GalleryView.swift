@@ -12,6 +12,7 @@ import Photos
 struct GalleryView: View {
 	@Namespace private var galleryNamespace
 	
+	@Environment(\.modelContext) private var modelContext
 	@Environment(PhotoStoreManager.self) private var photoStoreManager
 	
 	@Query(sort: \PhotoMetadata.timestamp, order: .reverse)
@@ -25,6 +26,10 @@ struct GalleryView: View {
 	@State private var activePhoto: PhotoMetadata?
 	@State private var isCollectionSheetShown = false
 	@State private var selectedBucket: ColorBucket?
+	
+	@State private var showDeleteAlert = false
+	@State private var showReanalyzeAlert = false
+	@State private var moveToBucket: ColorBucket? = nil
 	
 	var filteredPhotos: [PhotoMetadata] {
 		guard !debouncedSearchText.isEmpty else {
@@ -98,7 +103,56 @@ struct GalleryView: View {
 				debouncedSearchText = searchText
 			}
 		}
-		// TODO: Alert Components
+		.photoActionAlerts(
+			selectedCount: selectedPhotos.count,
+			showDeleteAlert: $showDeleteAlert,
+			showReanalyzeAlert: $showReanalyzeAlert,
+			moveToBucket: $moveToBucket,
+			onDelete: {
+				Task {
+					let identifiers = selectedPhotos.map { $0.phaccessLocalIdentifier }
+					
+					let success = await deletePhotos(localIdentifiers: identifiers)
+					if success {
+						withAnimation {
+							isSelect = false
+							selectedPhotos.removeAll()
+						}
+					}
+				}
+			},
+			onReanalyze: {
+				withAnimation {
+					for photo in selectedPhotos {
+						photo.bucketRawValue = nil
+						photo.swatches = nil
+					}
+					
+					try? modelContext.save()
+					
+					Task {
+						try? await photoStoreManager.analyzePhotos()
+					}
+					
+					isSelect = false
+					selectedPhotos.removeAll()
+				}
+			},
+			onMove: {
+				withAnimation {
+					if let targetBucket = moveToBucket {
+						for photo in selectedPhotos {
+							photo.bucketRawValue = targetBucket.rawValue
+						}
+						
+						try? modelContext.save()
+						
+						isSelect = false
+						selectedPhotos.removeAll()
+					}
+				}
+			}
+		)
 	}
 	
 	@ToolbarContentBuilder
@@ -123,13 +177,13 @@ struct GalleryView: View {
 				}
 			},
 			onDelete: {
-				// TODO: Delete
+				showDeleteAlert = true
 			},
 			onReanalyze: {
-				// TODO: Reanalyz
+				showReanalyzeAlert = true
 			},
-			onMove: {
-				// TODO: Move
+			onMove: { colorBucket in
+				moveToBucket = colorBucket
 			}
 		)
 		
