@@ -13,6 +13,7 @@ struct ContentView: View {
 	
 	@State private var isPermissionSheetShown = false
 	
+	// TODO: Onboarding
 	var body: some View {
 		NavigationStack {
 			GalleryView()

@@ -17,6 +17,10 @@ struct Zoomable: ViewModifier {
 	@State private var offset: CGSize = .zero
 	@State private var lastOffset: CGSize = .zero
 	
+	@State private var isAtMaxZoom: Bool = false
+	
+	private let smoothSpring = Animation.spring(response: 0.4, dampingFraction: 0.75)
+	
 	func body(content: Content) -> some View {
 		GeometryReader { geometry in
 			let size = geometry.size
@@ -35,7 +39,7 @@ struct Zoomable: ViewModifier {
 				.background(ZoomDismissGestureManager(isZoomed: isZoomed))
 				.onChange(of: isZoomed) { _, newValue in
 					if newValue == false {
-						withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+						withAnimation(smoothSpring) {
 							scale = 1.0
 							offset = .zero
 						}
@@ -43,11 +47,14 @@ struct Zoomable: ViewModifier {
 						lastOffset = .zero
 					}
 				}
+				.sensoryFeedback(.impact(weight: .light), trigger: isAtMaxZoom) { old, new in
+					new == true
+				}
 		}
 	}
 	
 	private func toggleZoom() {
-		withAnimation(.spring()) {
+		withAnimation(smoothSpring) {
 			if scale > 1.0 {
 				scale = 1.0
 				offset = .zero
@@ -65,11 +72,26 @@ struct Zoomable: ViewModifier {
 	private func magnify(in size: CGSize) -> some Gesture {
 		MagnifyGesture()
 			.onChanged { value in
-				scale = lastScale * value.magnification
+				let proposedScale = lastScale * value.magnification
+				let newScale: CGFloat
 				
+				if proposedScale > maxZoom {
+					// Apply rubber-band friction to the scale
+					let overZoom = proposedScale - maxZoom
+					newScale = maxZoom + (overZoom * 0.3)
+					
+					if !isAtMaxZoom { isAtMaxZoom = true }
+				} else {
+					newScale = proposedScale
+					if isAtMaxZoom { isAtMaxZoom = false }
+				}
+				
+				scale = newScale
+				
+				let scaleRatio = newScale / lastScale
 				offset = CGSize(
-					width: lastOffset.width * value.magnification,
-					height: lastOffset.height * value.magnification
+					width: lastOffset.width * scaleRatio,
+					height: lastOffset.height * scaleRatio
 				)
 				
 				let isNowZoomed = scale > 1.0
@@ -79,7 +101,7 @@ struct Zoomable: ViewModifier {
 			}
 			.onEnded { _ in
 				if scale <= 1.0 {
-					withAnimation {
+					withAnimation(smoothSpring) {
 						scale = 1.0
 						offset = .zero
 					}
@@ -87,11 +109,25 @@ struct Zoomable: ViewModifier {
 					lastOffset = .zero
 					isZoomed = false
 				} else {
-					scale = min(scale, maxZoom)
+					withAnimation(smoothSpring) {
+						if scale > maxZoom {
+							scale = maxZoom
+							let scaleRatio = scale / lastScale
+							offset = CGSize(
+								width: lastOffset.width * scaleRatio,
+								height: lastOffset.height * scaleRatio
+							)
+						}
+					}
+					
 					lastScale = scale
+					lastOffset = offset
+					
 					enforceBoundaries(in: size)
 					isZoomed = true
 				}
+				
+				isAtMaxZoom = false
 			}
 	}
 	
@@ -115,7 +151,7 @@ struct Zoomable: ViewModifier {
 		let maxX = max(0, (size.width * scale - size.width) / 2)
 		let maxY = max(0, (size.height * scale - size.height) / 2)
 		
-		withAnimation(.spring()) {
+		withAnimation(smoothSpring) {
 			offset.width = min(max(offset.width, -maxX), maxX)
 			offset.height = min(max(offset.height, -maxY), maxY)
 			lastOffset = offset
