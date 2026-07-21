@@ -21,6 +21,9 @@ struct CollectionSheetView: View {
 				} label: {
 					CollectionItemView(colorBucket: bucket)
 				}
+				.alignmentGuide(.listRowSeparatorLeading) { dimensions in
+					dimensions[.leading]
+				}
 			}
 			.padding(.top, 10)
 		}

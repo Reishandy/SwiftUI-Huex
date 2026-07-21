@@ -13,7 +13,9 @@ struct PhotoFilmstripView: View {
 	
 	let photoMetadatas: [PhotoMetadata]
 	@Binding var activeID: PhotoMetadata.ID?
+	
 	@State private var localScrollID: PhotoMetadata.ID?
+	@State private var hapticTrigger = false
 	
 	private let baseHeight: CGFloat = 40
 	private let inactiveWidth: CGFloat = 20
@@ -66,6 +68,8 @@ struct PhotoFilmstripView: View {
 			.onChange(of: localScrollID) { _, newID in
 				guard let newID, activeID != newID else { return }
 				activeID = newID
+				
+				hapticTrigger.toggle()
 			}
 			.task {
 				try? await Task.sleep(for: .milliseconds(50))
@@ -73,7 +77,7 @@ struct PhotoFilmstripView: View {
 					localScrollID = activeID
 				}
 			}
-			.sensoryFeedback(.impact, trigger: localScrollID)
+			.sensoryFeedback(.impact, trigger: hapticTrigger)
 		}
 		.frame(height: activeSize + 20)
 	}

@@ -45,7 +45,6 @@ struct PhotoDetailView: View {
 		GeometryReader { geometry in
 			let size = geometry.size
 			
-			// TODO: Animation on scrubber scroll
 			ScrollView(.horizontal) {
 				LazyHStack(spacing: 0) {
 					ForEach(photoMetadatas) { photoMetadata in
@@ -55,11 +54,9 @@ struct PhotoDetailView: View {
 							targetSize: PHImageManagerMaximumSize,
 							contentMode: .fit
 						)
-						.zoomable(isZoomed: $isZoomed) {
-							if !isZoomed {
-								withAnimation {
-									isToolbarVisible.toggle()
-								}
+						.zoomable(isZoomed: $isZoomed, maxZoom: 10.0) {
+							withAnimation {
+								isToolbarVisible.toggle()
 							}
 						}
 						.frame(width: size.width, height: size.height)
@@ -72,7 +69,6 @@ struct PhotoDetailView: View {
 			.scrollIndicators(.hidden)
 			.scrollTargetBehavior(.paging)
 			.scrollPosition(id: $activeID)
-			.scrollDisabled(isZoomed)
 			.onChange(of: isZoomed) { _, isNowZoomed in
 				withAnimation(.easeInOut) {
 					isToolbarVisible = !isNowZoomed
@@ -81,17 +77,18 @@ struct PhotoDetailView: View {
 			.onChange(of: activeID) { _, newID in
 				if let newID {
 					scrollPosition = ScrollPosition(id: newID, anchor: .center)
+					isZoomed = false
 				}
+			}
+			.overlay(alignment: .bottom) {
+				PhotoFilmstripView(photoMetadatas: photoMetadatas, activeID: $activeID)
+					.padding(.bottom, 90)
+					.opacity(isToolbarVisible ? 1 : 0)
+					.allowsHitTesting(isToolbarVisible)
 			}
 		}
 		.frame(maxWidth: .infinity, maxHeight: .infinity)
 		.ignoresSafeArea()
-		.overlay(alignment: .bottom) {
-			PhotoFilmstripView(photoMetadatas: photoMetadatas, activeID: $activeID)
-				.padding(.bottom, 10)
-				.opacity(isToolbarVisible ? 1 : 0)
-				.allowsHitTesting(isToolbarVisible)
-		}
 		.toolbar { detailToolbar }
 		.sheet(isPresented: $isPaletteSheetShown) {
 			PaletteSheetView()

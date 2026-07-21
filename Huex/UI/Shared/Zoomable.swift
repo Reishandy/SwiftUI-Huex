@@ -9,7 +9,7 @@ import SwiftUI
 
 struct Zoomable: ViewModifier {
 	@Binding var isZoomed: Bool
-	var maxZoom: CGFloat = 10.0
+	var maxZoom: CGFloat = 100.0
 	var onSingleTap: () -> Void = {}
 	
 	@State private var scale: CGFloat = 1.0
@@ -33,6 +33,16 @@ struct Zoomable: ViewModifier {
 					including: isZoomed ? .all : .none
 				)
 				.background(ZoomDismissGestureManager(isZoomed: isZoomed))
+				.onChange(of: isZoomed) { _, newValue in
+					if newValue == false {
+						withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+							scale = 1.0
+							offset = .zero
+						}
+						lastScale = 1.0
+						lastOffset = .zero
+					}
+				}
 		}
 	}
 	
@@ -114,7 +124,7 @@ struct Zoomable: ViewModifier {
 }
 
 extension View {
-	func zoomable(isZoomed: Binding<Bool>, maxZoom: CGFloat = 4.0, onSingleTap: @escaping () -> Void = {}) -> some View {
+	func zoomable(isZoomed: Binding<Bool>, maxZoom: CGFloat = 100.0, onSingleTap: @escaping () -> Void = {}) -> some View {
 		modifier(Zoomable(isZoomed: isZoomed, maxZoom: maxZoom, onSingleTap: onSingleTap))
 	}
 }

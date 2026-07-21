@@ -11,7 +11,6 @@ import SwiftData
 struct CollectionDetailView: View {
 	@Namespace private var collectionDetailNamespace
 	
-	@Environment(\.modelContext) private var modelContext
 	@Environment(PhotoStoreManager.self) private var photoStoreManager
 	
 	let colorBucket: ColorBucket
@@ -64,7 +63,28 @@ struct CollectionDetailView: View {
 		}
 		.navigationTitle(colorBucket.displayName)
 		.navigationBarTitleDisplayMode(.inline)
-		.toolbar { collectionToolbar }
+		.toolbar {
+			SelectionToolbar(
+				isSelect: $isSelect,
+				selectedPhotos: $selectedPhotos,
+				shouldShowSelect: !photoMetadatas.isEmpty,
+				onSelectAll: {
+					withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+						isSelect = true
+						selectedPhotos = Set(photoMetadatas)
+					}
+				},
+				onDelete: {
+					// TODO: Delete
+				},
+				onReanalyze: {
+					// TODO: Reanalyz
+				},
+				onMove: {
+					// TODO: Move
+				}
+			)
+		}
 		.navigationDestination(isPresented: $isShowingDetail) {
 			if let activePhoto {
 				PhotoDetailView(
@@ -73,106 +93,6 @@ struct CollectionDetailView: View {
 					namespace: collectionDetailNamespace,
 					scrollPosition: $gridScrollPosition
 				)
-			}
-		}
-		.sensoryFeedback(.impact, trigger: isSelect)
-	}
-	
-	@ToolbarContentBuilder
-	private var collectionToolbar: some ToolbarContent {
-		if isSelect {
-			ToolbarItem(placement: .topBarTrailing) {
-				Menu {
-					Button("Select All", systemImage: "square.grid.2x2.fill") {
-						withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-							isSelect = true
-							selectedPhotos = Set(photoMetadatas)
-						}
-					}
-					.disabled(!selectedPhotos.isEmpty)
-					
-					Button("Select None", systemImage: "square.grid.2x2") {
-						withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-							selectedPhotos = []
-						}
-					}
-					.disabled(selectedPhotos.isEmpty)
-					
-					Divider()
-					
-					Button("Reanalyze", systemImage: "arrow.2.squarepath") {
-						for selectedPhoto in selectedPhotos {
-							selectedPhoto.bucketRawValue = nil
-							selectedPhoto.swatches = nil
-						}
-						
-						try? modelContext.save()
-						Task {
-							try? await photoStoreManager.analyzePhotos()
-						}
-					}
-					.disabled(selectedPhotos.isEmpty)
-					
-					Button("Delete", systemImage: "trash", role: .destructive) {
-						Task {
-							await deletePhotos(localIdentifiers: selectedPhotos.map { $0.phaccessLocalIdentifier })
-						}
-					}
-					.disabled(selectedPhotos.isEmpty)
-				} label: {
-					Image(systemName: "ellipsis")
-				}
-			}
-			
-			ToolbarSpacer(placement: .topBarTrailing)
-		}
-		
-		if !photoMetadatas.isEmpty {
-			ToolbarItem(placement: .topBarTrailing) {
-				if isSelect {
-					Button("Done", systemImage: "checkmark") {
-						withAnimation {
-							isSelect = false
-							selectedPhotos = []
-						}
-					}
-					.buttonStyle(.glassProminent)
-				} else {
-					Button("Select") {
-						withAnimation {
-							isSelect = true
-						}
-					}
-				}
-			}
-		}
-		
-		if isSelect {
-			ToolbarItem(placement: .bottomBar) {
-				// TODO: Share
-				Button("Share", systemImage: "square.and.arrow.up") {
-					
-				}
-				.disabled(selectedPhotos.isEmpty)
-			}
-			
-			ToolbarSpacer(placement: .bottomBar)
-			
-			ToolbarItem(placement: .bottomBar) {
-				Text("\(selectedPhotos.count) Photo\(selectedPhotos.count > 1 ? "s" : "") Selected")
-					.bold()
-					.fixedSize()
-			}
-			.sharedBackgroundVisibility(.hidden)
-			
-			ToolbarSpacer(placement: .bottomBar)
-			
-			ToolbarItem(placement: .bottomBar) {
-				// TODO: Move
-				Button("Move", systemImage: "arrow.forward.folder") {
-					
-				}
-				.disabled(selectedPhotos.isEmpty)
 			}
 		}
 	}
