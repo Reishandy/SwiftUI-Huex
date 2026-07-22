@@ -31,18 +31,18 @@ struct PermissionSheetView: View {
 				.font(.largeTitle)
 				.fontWeight(.bold)
 			
-			VStack(spacing: 12) {
-				Text("To automatically organize your gallery into beautiful, color-coordinated collections, Huex needs access to your photo library.")
-					.fontWeight(.semibold)
-				
-				Text("All color analysis is processed securely on your device.")
-			}
-			.font(.body)
-			.multilineTextAlignment(.center)
-			.foregroundStyle(.secondary)
-			.padding(.horizontal)
+			Text("To automatically organize your gallery into beautiful, color-coordinated collections, Huex needs access to your photo library.")
+				.multilineTextAlignment(.center)
+				.foregroundStyle(.secondary)
+				.padding(.horizontal)
 			
 			Spacer()
+			
+			Text("For your privacy, all color analysis is processed entirely on your device. Processing large gallery may take a few minutes, and some tiny color details might be playfully approximated!")
+				.multilineTextAlignment(.center)
+				.font(.footnote)
+				.foregroundStyle(.secondary)
+				.padding(.horizontal)
 			
 			Button {
 				if photoPermissionManager.hasAlreadyGivenPermission {

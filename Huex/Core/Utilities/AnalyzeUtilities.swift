@@ -25,7 +25,7 @@ import simd
 /// Draws into a device-RGB context regardless of the source's color space,
 /// so wide-gamut (Display P3) photo assets get converted to sRGB before
 /// pixel sampling — matching the sRGB assumption `rgbToLab` makes.
-nonisolated func extractRGBVectors(from image: UIImage, maxSamples: Int = 10_000) -> [simd_float3]? {
+nonisolated func extractRGBVectors(from image: UIImage, maxSamples: Int = 5_000) -> [simd_float3]? {
 	guard let cgImage = image.cgImage else { return nil }
 	
 	let width = cgImage.width
@@ -50,9 +50,6 @@ nonisolated func extractRGBVectors(from image: UIImage, maxSamples: Int = 10_000
 	context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
 	
 	let totalPixels = width * height
-	// Stride evenly across all pixels rather than reading every one, so
-	// sampling stays roughly uniform across the image instead of clustering
-	// samples in one region (e.g. just the top rows).
 	let pixelStride = max(1, totalPixels / maxSamples)
 	
 	var vectors: [simd_float3] = []
@@ -71,7 +68,7 @@ nonisolated func extractRGBVectors(from image: UIImage, maxSamples: Int = 10_000
 
 // MARK: - Stage A: K-Means++
 
-nonisolated func runKMeansPlusPlus(pixels: [simd_float3], k: Int, maxIterations: Int = 20) -> [(centroid: simd_float3, count: Int)] {
+nonisolated func runKMeansPlusPlus(pixels: [simd_float3], k: Int, maxIterations: Int = 10) -> [(centroid: simd_float3, count: Int)] {
 	guard !pixels.isEmpty, k > 0 else { return [] }
 	
 	var centroids = [simd_float3]()
@@ -200,9 +197,9 @@ nonisolated func mergeCentroids(
 /// weight descending, ready to store on `PhotoMetadata.swatches`.
 nonisolated func extractPalette(
 	from image: UIImage,
-	initialK: Int = 14,
+	initialK: Int = 10,
 	mergeDistanceThreshold: Float = 6.0,
-	minCoveragePercentage: Double = 0.01
+	minCoveragePercentage: Double = 0.001
 ) -> [Swatch] {
 	guard let rgbVectors = extractRGBVectors(from: image) else { return [] }
 	
@@ -237,8 +234,7 @@ struct CategorizationResult {
 nonisolated func categorize(
 	swatches: [Swatch],
 	minCoveragePercentage: Double = 0.05,
-	marginThreshold: Double = 0.02,
-	dominantNeutralWeight: Double = 0.40
+	marginThreshold: Double = 0.02
 ) -> CategorizationResult {
 	guard !swatches.isEmpty else {
 		return CategorizationResult(bucket: .mixed, confidence: 0, margin: 0)
@@ -251,20 +247,6 @@ nonisolated func categorize(
 		return CategorizationResult(bucket: bucketFor(swatch: fallback), confidence: fallback.weight, margin: 0)
 	}
 	
-	// A large-area Black/White/Gray swatch can't win on chroma (it's ~0 by
-	// definition), so a small colorful accent would otherwise always beat
-	// it regardless of how dominant it visually is. Let it win outright
-	// once it clears a real area threshold.
-	if let dominantNeutral = eligible
-		.filter({ [.black, .white, .gray].contains(bucketFor(swatch: $0)) })
-		.max(by: { $0.weight < $1.weight }),
-	   dominantNeutral.weight >= dominantNeutralWeight {
-		return CategorizationResult(bucket: bucketFor(swatch: dominantNeutral), confidence: dominantNeutral.weight, margin: 1.0)
-	}
-	
-	// Blended salience: chroma scaled by a weight-derived factor. A tiny
-	// sliver can't win on saturation alone, but a moderately-sized area
-	// with a real chroma edge still can beat something larger but duller.
 	func score(_ swatch: Swatch) -> Double {
 		swatch.lch.c * (0.3 + 0.7 * swatch.weight)
 	}
@@ -286,7 +268,6 @@ nonisolated func categorize(
 	if ranked.count > 1 && margin < marginThreshold {
 		let runnerUpBucket = bucketFor(swatch: ranked[1])
 		
-		// Only return mixed if the competing swatches belong to DIFFERENT buckets
 		if primaryBucket != runnerUpBucket {
 			return CategorizationResult(bucket: .mixed, confidence: primary.weight, margin: margin)
 		}
@@ -314,29 +295,13 @@ nonisolated func bucketFor(
 	if l > whiteLightnessMin && c < whiteChromaMax { return .white }
 	if c < grayChromaMax { return .gray }
 	
-	// Pink — pale/pastel red-magenta, not the saturated version.
 	if (h >= 330 || h <= 20) && l > 55 && c < 45 {
 		return .pink
 	}
 	
-	// Brown — a lightness/chroma modifier on orange/yellow, not a separate
-	// hue. Widened from the original [20,70]/l<65 bounds: real tan, khaki,
-	// cardboard, and golden-brown food tones commonly land at hue 70-100°
-	// and lightness up to ~80 in Lab space (verified against actual photo
-	// swatches) — the original window excluded exactly that range, so
-	// these fell through to Orange/Yellow via nearest-hue instead.
-	if h >= 20 && h <= 100 && l < 80 && c < 45 {
+	if h >= 20 && h <= 100 && l < 83 && c < 45 {
 		return .brown
 	}
-	
-	// Purple/magenta — violet through saturated magenta/berry tones. This is
-	// an explicit gate rather than leaving it to nearest-hue-center distance:
-	// Purple's real Lab-space hue (~320°) sits close enough to Blue's
-	// (~300°) that a plain nearest-center lookup put saturated magenta
-	// right on Red's doorstep instead (Red's real anchor is ~40°, but the
-	// old wrong anchors of red=0°/purple=290° put a hue like 358° closer
-	// to "red" by a few degrees). This range is deliberately not caught by
-	// the paler Pink gate above.
 	if h >= 310 && h < 360 {
 		return .purple
 	}
@@ -345,16 +310,6 @@ nonisolated func bucketFor(
 }
 
 nonisolated func nearestHueBucket(hueDegrees: Double) -> ColorBucket {
-	// Centers are real Lab-space hue angles for each pure color (computed
-	// via rgbToLab/labToLCh on saturated reference RGB values), not evenly
-	// spaced guesses. sRGB's gamut is skewed in Lab space — e.g. pure red
-	// sits at ~40°, not 0°, and pure blue sits at ~300°, not 240° — so
-	// evenly-spaced anchors put real category boundaries in the wrong
-	// place. This was the root cause of blue skies/oceans/screens reading
-	// as Purple: the old "blue" anchor (240°) was nowhere near where blue
-	// actually lives, while the old "purple" anchor (290°) was almost
-	// exactly on top of it. Purple is intentionally absent here — it's
-	// handled by the explicit gate in bucketFor above.
 	let hueCenters: [(ColorBucket, Double)] = [
 		(.red, 40),
 		(.orange, 70),

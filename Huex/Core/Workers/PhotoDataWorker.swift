@@ -43,17 +43,25 @@ actor PhotoDataWorker {
 				},
 				sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
 			)
-			descriptor.fetchLimit = 1
+			descriptor.fetchLimit = 50
 			
 			let metadatas = try modelContext.fetch(descriptor)
-			guard let metadata = metadatas.first else { break }
+			guard !metadatas.isEmpty else { break }
 			
-			if let result = await analyzePhoto(for: metadata.phaccessLocalIdentifier) {
-				metadata.swatches = result.swatches
-				metadata.bucket = result.bucket
-			} else {
-				metadata.swatches = []
-				metadata.bucket = .mixed
+			for (index, metadata) in metadatas.enumerated() {
+				if let result = await analyzePhoto(for: metadata.phaccessLocalIdentifier) {
+					metadata.swatches = result.swatches
+					metadata.bucket = result.bucket
+				} else {
+					metadata.swatches = []
+					metadata.bucket = .mixed
+				}
+				
+				if index > 0 && index % 10 == 0 {
+					try modelContext.save()
+				}
+				
+				try await Task.sleep(for: .milliseconds(300))
 			}
 			
 			try modelContext.save()
@@ -64,7 +72,7 @@ actor PhotoDataWorker {
 		let assets = fetchPHassets(localIdentifiers: [localIdentifier])
 		guard let asset = assets.first else { return nil }
 	
-		let targetSize = CGSize(width: 400, height: 400)
+		let targetSize = CGSize(width: 120, height: 120)
 		guard let image = await fetchImage(asset: asset, targetSize: targetSize) else { return nil }
 		
 		return analyzeImage(image)

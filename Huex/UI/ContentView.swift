@@ -13,8 +13,8 @@ struct ContentView: View {
 	
 	@State private var isPermissionSheetShown = false
 	
-	// TODO: Onboarding (disclaimer about getting and heavy process hot)
 	// TODO: Select with drag
+	// TODO: fix when analyzing the move list on both gallary and detail is pulsing with the progress
 	var body: some View {
 		NavigationStack {
 			GalleryView()
