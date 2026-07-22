@@ -54,7 +54,7 @@ enum PreviewData {
 			let metadata = PhotoMetadata(
 				phaccessLocalIdentifier: id,
 				anayzedDate: analyzedDate,
-				swatches: swatches,
+				swatches: swatches ?? [],
 				bucket: bucket
 			)
 			

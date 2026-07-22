@@ -5,6 +5,7 @@
 //  Created by Muhammad Akbar Reishandy on 17/07/26.
 //
 
+import Foundation
 import SwiftUI
 import SwiftData
 
@@ -13,7 +14,16 @@ class PhotoMetadata: Identifiable, Equatable {
 	@Attribute(.unique) var phaccessLocalIdentifier: String
 	var timestamp: Date
 	
-	var swatches: [Swatch]?
+	@Attribute(.externalStorage) var swatchesData: Data
+	var swatches: [Swatch] {
+		get {
+			(try? JSONDecoder().decode([Swatch].self, from: swatchesData)) ?? []
+		}
+		set {
+			swatchesData = (try? JSONEncoder().encode(newValue)) ?? Data()
+		}
+	}
+	
 	var bucketRawValue: String?
 	var bucket: ColorBucket? {
 		get {
@@ -27,12 +37,12 @@ class PhotoMetadata: Identifiable, Equatable {
 		phaccessLocalIdentifier: String,
 		timestamp: Date = .now,
 		anayzedDate: Date? = nil,
-		swatches: [Swatch]? = nil,
+		swatches: [Swatch] = [],
 		bucket: ColorBucket? = nil
 	) {
 		self.phaccessLocalIdentifier = phaccessLocalIdentifier
 		self.timestamp = timestamp
-		self.swatches = swatches
+		self.swatchesData = (try? JSONEncoder().encode(swatches)) ?? Data()
 		self.bucketRawValue = bucket?.rawValue
 	}
 }

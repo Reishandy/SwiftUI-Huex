@@ -122,7 +122,7 @@ struct CollectionDetailView: View {
 				withAnimation {
 					for photo in selectedPhotos {
 						photo.bucketRawValue = nil
-						photo.swatches = nil
+						photo.swatches = []
 					}
 					
 					try? modelContext.save()

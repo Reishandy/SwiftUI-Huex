@@ -39,14 +39,13 @@ struct GalleryView: View {
 		let query = debouncedSearchText.lowercased()
 		
 		return photoMetadatas.filter { photo in
-			let matchesSwatch = photo.swatches?.contains { swatch in
+			// TODO: Decide if all colors or some treshold weight for the name
+			return photo.swatches.contains { swatch in
 				let matchesHex = swatch.hex.lowercased().contains(query)
 				let matchesName = swatch.name?.lowercased().contains(query) ?? false
 				
 				return matchesHex || matchesName
-			} ?? false
-			
-			return matchesSwatch
+			}
 		}
 	}
 	
@@ -127,7 +126,7 @@ struct GalleryView: View {
 				withAnimation {
 					for photo in selectedPhotos {
 						photo.bucketRawValue = nil
-						photo.swatches = nil
+						photo.swatches = []
 					}
 					
 					try? modelContext.save()

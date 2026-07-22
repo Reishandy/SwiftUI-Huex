@@ -53,4 +53,10 @@ struct Swatch: Codable, Identifiable, Hashable {
 			name: colorName
 		)
 	}
+	
+	nonisolated static func make(labCentroid: simd_float3, weight: Double = 1.0) -> Swatch {
+		let rgb = labToRgb(labCentroid)
+		let hex = rgbToHex(rgb)
+		return Swatch.make(hex: hex, weight: weight)
+	}
 }

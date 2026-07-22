@@ -12,8 +12,8 @@ struct PaletteSheetView: View {
 	let isExpanded: Bool
 	
 	var navTitle: String {
-		if let swatches = photoMetadata.swatches, !swatches.isEmpty {
-			return "\(swatches.count) color\(swatches.count > 1 ? "s" : "")"
+		if !photoMetadata.swatches.isEmpty {
+			return "\(photoMetadata.swatches.count) color\(photoMetadata.swatches.count > 1 ? "s" : "")"
 		} else {
 			return "Color Palette"
 		}
@@ -22,22 +22,22 @@ struct PaletteSheetView: View {
 	var body: some View {
 		NavigationStack {
 			Group {
-				if let swatches = photoMetadata.swatches, !swatches.isEmpty {
-					ScrollView {
-						PaletteStripView(swatches: swatches)
-							.padding(.horizontal, 30)
-						
-						ForEach(swatches.sorted { $0.weight > $1.weight }) { swatch in
-							PaletteItemView(swatch: swatch, isExpanded: isExpanded)
-						}
-						.padding(.horizontal, 20)
-					}
-				} else {
+				if photoMetadata.swatches.isEmpty {
 					EmptyStateView(
 						systemImage: "swatchpalette",
 						title: "No Palette Yet",
 						description: "Please wait for the analysis process to complete"
 					)
+				} else {
+					ScrollView {
+						PaletteStripView(swatches: photoMetadata.swatches)
+							.padding(.horizontal, 30)
+						
+						ForEach(photoMetadata.swatches.sorted { $0.weight > $1.weight }) { swatch in
+							PaletteItemView(swatch: swatch, isExpanded: isExpanded)
+						}
+						.padding(.horizontal, 20)
+					}
 				}
 			}
 			.navigationTitle(navTitle)

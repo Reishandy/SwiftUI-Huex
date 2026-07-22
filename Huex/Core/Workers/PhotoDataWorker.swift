@@ -39,8 +39,7 @@ actor PhotoDataWorker {
 		while true {
 			var descriptor = FetchDescriptor<PhotoMetadata>(
 				predicate: #Predicate<PhotoMetadata> { photoMetadata in
-					photoMetadata.bucketRawValue == nil ||
-					photoMetadata.swatches == nil
+					photoMetadata.bucketRawValue == nil
 				},
 				sortBy: [SortDescriptor(\.timestamp)]
 			)
@@ -49,10 +48,13 @@ actor PhotoDataWorker {
 			let metadatas = try modelContext.fetch(descriptor)
 			guard let metadata = metadatas.first else { break }
 			
-			// TODO: Set the result here
-			print("would analyze: ", metadata.phaccessLocalIdentifier)
-			
-			guard let result = await analyzePhoto(for: metadata.phaccessLocalIdentifier) else { break /* TODO: Continue */ }
+			if let result = await analyzePhoto(for: metadata.phaccessLocalIdentifier) {
+				metadata.swatches = result.swatches
+				metadata.bucket = result.bucket
+			} else {
+				metadata.swatches = []
+				metadata.bucket = .mixed
+			}
 			
 			try modelContext.save()
 		}
@@ -66,7 +68,6 @@ actor PhotoDataWorker {
 		let targetSize = CGSize(width: 100, height: 100)
 		guard let image = await fetchImage(asset: asset, targetSize: targetSize) else { return nil }
 		
-		// TODO: Analyze here
-		return nil
+		return analyzeImage(image)
 	}
 }

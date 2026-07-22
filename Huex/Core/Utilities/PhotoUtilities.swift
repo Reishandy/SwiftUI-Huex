@@ -1,5 +1,5 @@
 //
-//  PhotoUtils.swift
+//  PhotoUtilitiess.swift
 //  Huex
 //
 //  Created by Muhammad Akbar Reishandy on 19/07/26.

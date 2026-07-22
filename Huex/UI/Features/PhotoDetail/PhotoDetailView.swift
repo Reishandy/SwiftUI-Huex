@@ -134,7 +134,7 @@ struct PhotoDetailView: View {
 				withAnimation {
 					if let activePhotometadata {
 						activePhotometadata.bucketRawValue = nil
-						activePhotometadata.swatches = nil
+						activePhotometadata.swatches = []
 						
 						try? modelContext.save()
 						

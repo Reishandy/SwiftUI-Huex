@@ -27,7 +27,6 @@ struct HuexApp: App {
 		_photoStoreManager = State(initialValue: PhotoStoreManager(modelContainer: modelContainer))
 	}
 	
-	// TODO: Cloudkit sync
 	var body: some Scene {
 		WindowGroup {
 			ContentView()
