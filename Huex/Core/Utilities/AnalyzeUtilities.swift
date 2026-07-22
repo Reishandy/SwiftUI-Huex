@@ -313,8 +313,8 @@ nonisolated func nearestHueBucket(hueDegrees: Double) -> ColorBucket {
 	let hueCenters: [(ColorBucket, Double)] = [
 		(.red, 40),
 		(.orange, 70),
-		(.yellow, 100),
-		(.green, 135),
+		(.yellow, 85),
+		(.green, 110),
 		(.blue, 300)
 	]
 	
