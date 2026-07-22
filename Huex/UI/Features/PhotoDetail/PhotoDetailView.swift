@@ -131,26 +131,26 @@ struct PhotoDetailView: View {
 				}
 			},
 			onReanalyze: {
-				withAnimation {
-					if let activePhotometadata {
-						activePhotometadata.bucketRawValue = nil
-						activePhotometadata.swatches = []
-						
-						try? modelContext.save()
-						
-						Task {
-							try? await photoStoreManager.analyzePhotos()
-						}
+				dismiss()
+				
+				if let activePhotometadata {
+					activePhotometadata.bucketRawValue = nil
+					activePhotometadata.swatches = []
+					
+					try? modelContext.save()
+					
+					Task {
+						try? await photoStoreManager.analyzePhotos()
 					}
 				}
 			},
 			onMove: {
-				withAnimation {
-					if let activePhotometadata, let targetBucket = moveToBucket {
-						activePhotometadata.bucketRawValue = targetBucket.rawValue
-						
-						try? modelContext.save()
-					}
+				dismiss()
+				
+				if let activePhotometadata, let targetBucket = moveToBucket {
+					activePhotometadata.bucketRawValue = targetBucket.rawValue
+					
+					try? modelContext.save()
 				}
 			}
 		)

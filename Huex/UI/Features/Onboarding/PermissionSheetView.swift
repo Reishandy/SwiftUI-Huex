@@ -38,7 +38,7 @@ struct PermissionSheetView: View {
 			
 			Spacer()
 			
-			Text("For your privacy, all color analysis is processed entirely on your device. Processing large gallery may take a few minutes, and some tiny color details might be playfully approximated!")
+			Text("For your privacy, all color analysis is processed entirely on your device. Processing a large gallery may take a few minutes, and some tiny color details might be playfully approximated! Huex will try its best to categorize your photos!")
 				.multilineTextAlignment(.center)
 				.font(.footnote)
 				.foregroundStyle(.secondary)
