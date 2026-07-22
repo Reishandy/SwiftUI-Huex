@@ -70,6 +70,7 @@ struct PhotoCellView: View {
 				}
 			}
 		}
+		.animation(.default, value: photoMetadata.bucket)
 		.gesture(
 			LongPressGesture(minimumDuration: 0.2)
 				.onEnded { _ in

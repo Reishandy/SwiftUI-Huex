@@ -21,13 +21,11 @@ struct GalleryTitleView: View {
 			
 			HStack {
 				Text(isAnalyzing ? "Analyzing \(processedImages)/\(totalImages)" : "\(totalImages) Images")
-					.foregroundStyle(.secondary)
 					.fixedSize()
 					.contentTransition(.interpolate)
 				
 				if isAnalyzing {
 					Image(systemName: "square.grid.2x2")
-						.foregroundStyle(.secondary)
 						.symbolEffect(.bounce.down, options: .repeat(.periodic(delay: 0.5)))
 						.transition(.opacity.combined(with: .scale))
 						.foregroundStyle(

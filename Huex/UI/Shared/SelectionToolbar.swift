@@ -26,7 +26,6 @@ struct SelectionToolbar: ToolbarContent {
 							onSelectAll()
 						}
 					}
-					.disabled(!selectedPhotos.isEmpty)
 					
 					Button("Select None", systemImage: "square.grid.2x2") {
 						withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {

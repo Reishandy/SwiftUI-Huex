@@ -13,7 +13,8 @@ struct ContentView: View {
 	
 	@State private var isPermissionSheetShown = false
 	
-	// TODO: Onboarding
+	// TODO: Onboarding (disclaimer about getting and heavy process hot)
+	// TODO: Select with drag
 	var body: some View {
 		NavigationStack {
 			GalleryView()

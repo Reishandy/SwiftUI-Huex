@@ -31,12 +31,12 @@ struct PaletteSheetView: View {
 				} else {
 					ScrollView {
 						PaletteStripView(swatches: photoMetadata.swatches)
-							.padding(.horizontal, 30)
+							.padding(.horizontal, 25)
 						
 						ForEach(photoMetadata.swatches.sorted { $0.weight > $1.weight }) { swatch in
 							PaletteItemView(swatch: swatch, isExpanded: isExpanded)
 						}
-						.padding(.horizontal, 20)
+						.padding(.horizontal, 15)
 					}
 				}
 			}

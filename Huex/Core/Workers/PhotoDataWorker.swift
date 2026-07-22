@@ -41,7 +41,7 @@ actor PhotoDataWorker {
 				predicate: #Predicate<PhotoMetadata> { photoMetadata in
 					photoMetadata.bucketRawValue == nil
 				},
-				sortBy: [SortDescriptor(\.timestamp)]
+				sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
 			)
 			descriptor.fetchLimit = 1
 			
@@ -63,9 +63,8 @@ actor PhotoDataWorker {
 	private func analyzePhoto(for localIdentifier: String) async -> (bucket: ColorBucket, swatches: [Swatch])? {
 		let assets = fetchPHassets(localIdentifiers: [localIdentifier])
 		guard let asset = assets.first else { return nil }
-		
-		// TODO: Deicde size
-		let targetSize = CGSize(width: 100, height: 100)
+	
+		let targetSize = CGSize(width: 400, height: 400)
 		guard let image = await fetchImage(asset: asset, targetSize: targetSize) else { return nil }
 		
 		return analyzeImage(image)
