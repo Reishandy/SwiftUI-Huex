@@ -50,7 +50,7 @@ struct CollectionItemView: View {
 				}
 				.clipShape(RoundedRectangle(cornerRadius: 12))
 				.contentShape(RoundedRectangle(cornerRadius: 12))
-				.frame(width: 80, height: 80)
+				.frame(width: 60, height: 60)
 			
 			VStack(alignment: .leading, spacing: 8) {
 				HStack {

@@ -32,10 +32,10 @@ struct PermissionSheetView: View {
 				.fontWeight(.bold)
 			
 			VStack(spacing: 12) {
-				Text("To automatically organize your gallery into beautiful, color-coordinated albums, Huex needs access to your photo library.")
+				Text("To automatically organize your gallery into beautiful, color-coordinated collections, Huex needs access to your photo library.")
+					.fontWeight(.semibold)
 				
 				Text("All color analysis is processed securely on your device.")
-					.fontWeight(.semibold)
 			}
 			.font(.body)
 			.multilineTextAlignment(.center)

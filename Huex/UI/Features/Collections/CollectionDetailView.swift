@@ -42,7 +42,7 @@ struct CollectionDetailView: View {
 	var body: some View {
 		Group {
 			if photoMetadatas.isEmpty {
-				EmpyStateView(
+				EmptyStateView(
 					systemImage: colorBucket.symbol,
 					title: "No \(colorBucket.displayName) Photos.",
 					description: "Take a photo with some \(colorBucket.displayName)! or wait for the analisys process to complete"

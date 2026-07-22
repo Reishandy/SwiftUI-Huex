@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import simd
 
 nonisolated extension UIColor {
 	
@@ -14,24 +15,42 @@ nonisolated extension UIColor {
 	public convenience init?(hex: String) {
 		let hexString = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
 		
+		guard [3, 6, 8].contains(hexString.count) else {
+			return nil
+		}
+		
 		var hexValue = UInt64()
 		
 		guard Scanner(string: hexString).scanHexInt64(&hexValue) else {
 			return nil
 		}
 		
-		let a, r, g, b: UInt64
 		switch hexString.count {
 		case 3: // 0xRGB
-			(a, r, g, b) = (255, (hexValue >> 8) * 17, (hexValue >> 4 & 0xF) * 17, (hexValue & 0xF) * 17)
-		case 6: // 0xRRGGBB
-			(a, r, g, b) = (255, hexValue >> 16, hexValue >> 8 & 0xFF, hexValue & 0xFF)
+			let r = CGFloat((hexValue >> 8) * 17) / 255.0
+			let g = CGFloat((hexValue >> 4 & 0xF) * 17) / 255.0
+			let b = CGFloat((hexValue & 0xF) * 17) / 255.0
+			self.init(red: r, green: g, blue: b, alpha: 1.0)
+			
+		case 6: // 0xRRGGBB -> Leverage ColorUtilities
+			let rgb = hexToRGB(hexString)
+			self.init(
+				red: CGFloat(rgb.r) / 255.0,
+				green: CGFloat(rgb.g) / 255.0,
+				blue: CGFloat(rgb.b) / 255.0,
+				alpha: 1.0
+			)
+			
 		case 8: // 0xRRGGBBAA
-			(r, g, b, a) = (hexValue >> 24, hexValue >> 16 & 0xFF, hexValue >> 8 & 0xFF, hexValue & 0xFF)
+			let r = CGFloat((hexValue >> 24) & 0xFF) / 255.0
+			let g = CGFloat((hexValue >> 16) & 0xFF) / 255.0
+			let b = CGFloat((hexValue >> 8) & 0xFF) / 255.0
+			let a = CGFloat(hexValue & 0xFF) / 255.0
+			self.init(red: r, green: g, blue: b, alpha: a)
+			
 		default:
-			(a, r, g, b) = (255, 0, 0, 0)
+			return nil
 		}
-		self.init(red: CGFloat(r) / 255, green: CGFloat(g) / 255, blue: CGFloat(b) / 255, alpha: CGFloat(a) / 255)
 	}
 	
 	/// The hexadecimal value of the color.
@@ -43,12 +62,8 @@ nonisolated extension UIColor {
 		
 		self.getRed(&r, green: &g, blue: &b, alpha: &a)
 		
-		let rInt = Int(r * 255)
-		let gInt = Int(g * 255)
-		let bInt = Int(b * 255)
-		
-		let rgb: Int = rInt << 16 | gInt << 8 | bInt << 0
-		return String(format: "#%06x", rgb)
+		let rgbSimd = simd_float3(Float(r * 255), Float(g * 255), Float(b * 255))
+		return rgbToHex(rgbSimd)
 	}
 	
 }

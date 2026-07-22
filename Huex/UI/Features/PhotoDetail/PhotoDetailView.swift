@@ -26,6 +26,7 @@ struct PhotoDetailView: View {
 	@State private var isZoomed = false
 	@State private var isToolbarVisible = true
 	@State private var isPaletteSheetShown = false
+	@State private var currentPaletteDetent: PresentationDetent = .medium
 	
 	@State private var showDeleteAlert = false
 	@State private var showReanalyzeAlert = false
@@ -98,11 +99,17 @@ struct PhotoDetailView: View {
 		.ignoresSafeArea()
 		.toolbar { detailToolbar }
 		.sheet(isPresented: $isPaletteSheetShown) {
-			PaletteSheetView()
-				.presentationDetents([.medium, .large])
+			if let activePhotometadata {
+				PaletteSheetView(
+					photoMetadata: activePhotometadata,
+					isExpanded: currentPaletteDetent == .large || UIDevice.current.userInterfaceIdiom == .pad
+				)
+				.presentationDetents([.medium, .large], selection: $currentPaletteDetent)
 				.presentationDragIndicator(.visible)
 				.presentationSizing(.page)
+				.presentationContentInteraction(.resizes)
 				.navigationTransition(.zoom(sourceID: "sheetSource", in: detailNamespace))
+			}
 		}
 		.statusBarHidden(!isToolbarVisible)
 		.toolbar(isToolbarVisible ? .visible : .hidden, for: .navigationBar, .bottomBar)
@@ -166,6 +173,15 @@ struct PhotoDetailView: View {
 				.glassEffect()
 			}
 			
+			ToolbarItem(placement: UIDevice.current.userInterfaceIdiom == .pad ? .topBarTrailing : .bottomBar) {
+				// TODO: Share
+				Button("Share", systemImage: "square.and.arrow.up") {
+					
+				}
+			}
+			
+			ToolbarSpacer(placement: .topBarTrailing)
+			
 			ToolbarItem(placement: .topBarTrailing) {
 				Menu {
 					MoveMenuView { colorBucket in
@@ -184,18 +200,12 @@ struct PhotoDetailView: View {
 				}
 			}
 			
-			ToolbarItem(placement: .bottomBar) {
-				// TODO: Share
-				Button("Share", systemImage: "square.and.arrow.up") {
-					
-				}
-			}
-			
 			ToolbarSpacer(placement: .bottomBar)
 			
 			ToolbarItem(placement: .bottomBar) {
 				Button {
 					isPaletteSheetShown = true
+					currentPaletteDetent = .medium
 				} label: {
 					HStack {
 						Image(systemName: "swatchpalette.fill")
@@ -205,6 +215,7 @@ struct PhotoDetailView: View {
 								.green,
 								.red
 							)
+						
 						Text("Color Palette")
 					}
 					.font(.title3)
@@ -216,6 +227,7 @@ struct PhotoDetailView: View {
 							.onEnded { value in
 								if value.translation.height < -5 {
 									isPaletteSheetShown = true
+									currentPaletteDetent = .medium
 								}
 							}
 					)

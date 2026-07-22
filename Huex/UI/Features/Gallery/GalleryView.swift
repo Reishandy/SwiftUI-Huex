@@ -53,7 +53,7 @@ struct GalleryView: View {
 	var body: some View {
 		Group {
 			if filteredPhotos.isEmpty {
-				EmpyStateView(
+				EmptyStateView(
 					systemImage: "photo.badge.magnifyingglass.fill",
 					title: "No Photo Found",
 					description: "We couln't find any photos, check your search or take new photos!"
@@ -81,6 +81,8 @@ struct GalleryView: View {
 			CollectionSheetView(selectedBucket: $selectedBucket)
 				.presentationDetents([.medium, .large])
 				.presentationDragIndicator(.visible)
+				.presentationSizing(.page)
+				.presentationContentInteraction(.resizes)
 				.navigationTransition(.zoom(sourceID: "sheetSource", in: galleryNamespace))
 		}
 		.navigationDestination(item: $activePhoto) { photo in

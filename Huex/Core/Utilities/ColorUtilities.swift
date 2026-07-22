@@ -5,7 +5,7 @@
 //  Created by Muhammad Akbar Reishandy on 19/07/26.
 //
 
-import Foundation
+import SwiftUI
 import simd
 
 /// - Parameter rgb: components in 0...255
@@ -137,4 +137,16 @@ nonisolated func rgbToCMYK(_ rgb: (r: Int, g: Int, b: Int)) -> (c: Int, m: Int, 
 		Int((y * 100).rounded()),
 		Int((k * 100).rounded())
 	)
+}
+
+func shouldUseWhiteText(onHex hex: String) -> Bool? {
+	guard UIColor(hex: hex) != nil else {
+		return nil
+	}
+	
+	let rgb = hexToRGB(hex)
+	let rgbSimd = simd_float3(Float(rgb.r), Float(rgb.g), Float(rgb.b))
+	let lab = rgbToLab(rgbSimd)
+	
+	return lab.x < 50.0
 }

@@ -28,9 +28,15 @@ struct GalleryTitleView: View {
 				if isAnalyzing {
 					Image(systemName: "square.grid.2x2")
 						.foregroundStyle(.secondary)
-						.font(.caption)
 						.symbolEffect(.bounce.down, options: .repeat(.periodic(delay: 0.5)))
 						.transition(.opacity.combined(with: .scale))
+						.foregroundStyle(
+							LinearGradient(
+								colors: [.blue, .purple, .pink, .orange],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
 				}
 			}
 			.animation(.easeInOut, value: isAnalyzing)
@@ -41,6 +47,6 @@ struct GalleryTitleView: View {
 
 #Preview {
     GalleryTitleView(
-		isAnalyzing: false, totalImages: "1000", processedImages: "100"
+		isAnalyzing: true, totalImages: "1000", processedImages: "100"
 	)
 }

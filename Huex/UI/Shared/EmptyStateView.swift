@@ -1,5 +1,5 @@
 //
-//  EmpyStateView.swift
+//  EmptyStateView.swift
 //  Huex
 //
 //  Created by Muhammad Akbar Reishandy on 19/07/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct EmpyStateView: View {
+struct EmptyStateView: View {
 	var systemImage: String
 	var title: String
 	var description: String
@@ -29,10 +29,10 @@ struct EmpyStateView: View {
 					.multilineTextAlignment(.center)
 			}
 		}
-		.padding()
+		.padding(40)
 	}
 }
 
 #Preview {
-    EmpyStateView(systemImage: "questionmark", title: "Empty", description: "Nothing")
+    EmptyStateView(systemImage: "questionmark", title: "Empty?", description: "Nothing But Longer Description You Know For Science")
 }

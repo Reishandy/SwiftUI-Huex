@@ -19,33 +19,28 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 
-import UIKit
+// Modified to be a standalone helper
 
-public extension UIColor {
+import Foundation
+
+public enum NameThatColor {
 	
-	var descriptiveName: String {
-		var r: CGFloat = 0
-		var g: CGFloat = 0
-		var b: CGFloat = 0
+	/// Finds the closest descriptive color name for a given RGB tuple.
+	public static func descriptiveName(for rgb: (r: Int, g: Int, b: Int)) -> String {
+		let targetR = Double(rgb.r)
+		let targetG = Double(rgb.g)
+		let targetB = Double(rgb.b)
 		
-		getRed(&r, green: &g, blue: &b, alpha: nil)
-		
-		r = r * 255
-		g = g * 255
-		b = b * 255
-		
-		var shortestDistance = CGFloat.greatestFiniteMagnitude
-		var bestMatchingName = Resource.hexToName.first!.value
-		
+		var shortestDistance = Double.greatestFiniteMagnitude
+		var bestMatchingName = Resource.hexToName.first?.value ?? "Unknown"
 		
 		for (hex, name) in Resource.hexToName {
 			let mask = 0x000000FF
-			let r2 = CGFloat(Int(hex >> 16) & mask)
-			let g2 = CGFloat(Int(hex >> 8) & mask)
-			let b2 = CGFloat(Int(hex) & mask)
+			let r2 = Double((hex >> 16) & mask)
+			let g2 = Double((hex >> 8) & mask)
+			let b2 = Double(hex & mask)
 			
-			
-			let squaredEuclideanDistance = pow(r2 - r, 2) + pow(g2 - g, 2) + pow(b2 - b, 2)
+			let squaredEuclideanDistance = pow(r2 - targetR, 2) + pow(g2 - targetG, 2) + pow(b2 - targetB, 2)
 			
 			if squaredEuclideanDistance < shortestDistance {
 				shortestDistance = squaredEuclideanDistance
@@ -56,33 +51,34 @@ public extension UIColor {
 		return bestMatchingName
 	}
 	
-	static let allDescriptiveNames: [String] = {
+	/// Helper to directly find a name from a Hex string
+	public static func descriptiveName(forHex hexString: String) -> String {
+		let rgb = hexToRGB(hexString)
+		return descriptiveName(for: rgb)
+	}
+	
+	public static let allDescriptiveNames: [String] = {
 		return Resource.names
 	}()
 	
-	static func hexStringFor(name: String) -> String {
+	public static func hexStringFor(name: String) -> String {
 		guard let hex = Resource.nameToHex[name] else { return "nil" }
-		return String(format:"%07X", hex)
-	}
-	
-	static func colorFor(name: String) -> UIColor? {
-		guard let hex = Resource.nameToHex[name] else { return nil }
-		return UIColor(hexNumber: hex)
+		return String(format:"#%06X", hex)
 	}
 	
 	private static var _sectionTitles: [Character]! = nil
-	static var sectionsTitles: [Character] = {
+	public static var sectionsTitles: [Character] = {
 		_  = generate
 		return _sectionTitles!
 	}()
 	
 	private static var _sections: [Character: [String]]! = nil
-	static var sections: [Character: [String]] = {
+	public static var sections: [Character: [String]] = {
 		_  = generate
 		return _sections
 	}()
 	
-	static let generate: () = {
+	private static let generate: () = {
 		let sorted = Resource.names.sorted()
 		_sections = [Character: [String]]()
 		var dTemp = [Character: [String]]()
@@ -102,16 +98,4 @@ public extension UIColor {
 		
 		_sectionTitles = Array(_sections.keys).sorted()
 	}()
-	
-}
-
-extension UIColor {
-	public convenience init?(hexNumber: Int) {
-		let r, g, b: CGFloat
-		r = CGFloat((hexNumber & 0x00ff0000) >> 16) / 255
-		g = CGFloat((hexNumber & 0x0000ff00) >> 8) / 255
-		b = CGFloat(hexNumber & 0x000000ff) / 255
-		self.init(red: r, green: g, blue: b, alpha: 1.0)
-		return
-	}
 }

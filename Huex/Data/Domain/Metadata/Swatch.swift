@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import simd
 
 struct Swatch: Codable, Identifiable, Hashable {
 	var id: String { hex }
@@ -26,5 +27,30 @@ struct Swatch: Codable, Identifiable, Hashable {
 	
 	var percentage: Int {
 		Int((weight * 100).rounded())
+	}
+	
+	static func make(hex: String, weight: Double = 1.0) -> Swatch {
+		let rgbTuple = hexToRGB(hex)
+		let rgbSimd = simd_float3(Float(rgbTuple.r), Float(rgbTuple.g), Float(rgbTuple.b))
+		
+		let labSimd = rgbToLab(rgbSimd)
+		let lchColor = labToLCh(labSimd)
+		
+		let labColor = LabColor(
+			l: Double(labSimd.x),
+			a: Double(labSimd.y),
+			b: Double(labSimd.z)
+		)
+		
+		let formattedHex = rgbToHex(rgbSimd)
+		let colorName = NameThatColor.descriptiveName(forHex: formattedHex)
+		
+		return Swatch(
+			hex: formattedHex,
+			lab: labColor,
+			lch: lchColor,
+			weight: weight,
+			name: colorName
+		)
 	}
 }

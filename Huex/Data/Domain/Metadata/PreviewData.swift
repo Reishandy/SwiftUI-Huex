@@ -15,12 +15,6 @@ enum PreviewData {
 		let config = ModelConfiguration(isStoredInMemoryOnly: true)
 		let container = try! ModelContainer(for: PhotoMetadata.self, configurations: config)
 		
-		let mockColors = [
-			("#FF3B30", "Red"), ("#FF9500", "Orange"), ("#FFCC00", "Yellow"),
-			("#34C759", "Green"), ("#007AFF", "Blue"), ("#AF52DE", "Purple"),
-			("#1C1C1E", "Black"), ("#F2F2F7", "White"), ("#8E8E93", "Gray")
-		]
-		
 		let sampleIDs = (1...999).map { "Preview-\($0)" }
 		
 		for id in sampleIDs {
@@ -29,41 +23,24 @@ enum PreviewData {
 			var analyzedDate: Date? = nil
 			
 			analyzedDate = Date().addingTimeInterval(-Double.random(in: 0...604800))
-			
 			bucket = ColorBucket.allCases.randomElement()!
 			
-			let numSwatches = Int.random(in: 1...5)
+			let numSwatches = Int.random(in: 2...10)
 			var generatedSwatches: [Swatch] = []
 			var totalWeight: Double = 0
 			
 			for _ in 0..<numSwatches {
-				let randomColor = mockColors.randomElement()!
-				let hexString = randomColor.0
-				let name = randomColor.1
+				let randomHex = String(format: "#%06X", Int.random(in: 0...0xFFFFFF))
 				
 				let rawWeight = Double.random(in: 0.1...1.0)
 				totalWeight += rawWeight
 				
-				let rgbTuple = hexToRGB(hexString)
-				
-				let rgbSimd = simd_float3(Float(rgbTuple.r), Float(rgbTuple.g), Float(rgbTuple.b))
-				
-				let labSimd = rgbToLab(rgbSimd)
-				let lchColor = labToLCh(labSimd)
-				
-				let labColor = LabColor(
-					l: Double(labSimd.x),
-					a: Double(labSimd.y),
-					b: Double(labSimd.z)
+				let swatch = Swatch.make(
+					hex: randomHex,
+					weight: rawWeight
 				)
 				
-				generatedSwatches.append(Swatch(
-					hex: hexString,
-					lab: labColor,
-					lch: lchColor,
-					weight: rawWeight,
-					name: name
-				))
+				generatedSwatches.append(swatch)
 			}
 			
 			swatches = generatedSwatches.map { swatch in
@@ -72,11 +49,13 @@ enum PreviewData {
 				return normalized
 			}
 			
+			swatches?.sort { $0.weight > $1.weight }
+			
 			let metadata = PhotoMetadata(
 				phaccessLocalIdentifier: id,
 				anayzedDate: analyzedDate,
 				swatches: swatches,
-				bucket: bucket,
+				bucket: bucket
 			)
 			
 			container.mainContext.insert(metadata)
@@ -84,4 +63,13 @@ enum PreviewData {
 		
 		return container
 	}()
+	
+	static let sampleSwatches: [Swatch] = [
+		.make(hex: "#FF3B30", weight: 0.30),
+		.make(hex: "#FF9500", weight: 0.20),
+		.make(hex: "#FFCC00", weight: 0.15),
+		.make(hex: "#34C759", weight: 0.15),
+		.make(hex: "#007AFF", weight: 0.10),
+		.make(hex: "#AF52DE", weight: 0.10)
+	]
 }
