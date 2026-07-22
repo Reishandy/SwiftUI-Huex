@@ -96,7 +96,8 @@ struct CollectionDetailView: View {
 					photoMetadatas: photoMetadatas,
 					initialPhotoID: activePhoto.id,
 					namespace: collectionDetailNamespace,
-					scrollPosition: $gridScrollPosition
+					scrollPosition: $gridScrollPosition,
+					removesOnMove: true
 				)
 			}
 		}

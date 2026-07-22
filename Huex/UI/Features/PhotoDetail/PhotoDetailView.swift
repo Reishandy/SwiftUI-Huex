@@ -19,6 +19,7 @@ struct PhotoDetailView: View {
 	let photoMetadatas: [PhotoMetadata]
 	let namespace: Namespace.ID
 	let initialPhotoID: PhotoMetadata.ID
+	let removesOnMove: Bool
 	
 	@Binding var scrollPosition: ScrollPosition
 	
@@ -40,12 +41,14 @@ struct PhotoDetailView: View {
 		photoMetadatas: [PhotoMetadata],
 		initialPhotoID: PhotoMetadata.ID,
 		namespace: Namespace.ID,
-		scrollPosition: Binding<ScrollPosition>
+		scrollPosition: Binding<ScrollPosition>,
+		removesOnMove: Bool = false
 	) {
 		self.photoMetadatas = photoMetadatas
 		self.initialPhotoID = initialPhotoID
 		self.namespace = namespace
 		self._scrollPosition = scrollPosition
+		self.removesOnMove = removesOnMove
 		_activeID = State(initialValue: initialPhotoID)
 	}
 	
@@ -122,35 +125,67 @@ struct PhotoDetailView: View {
 			moveToBucket: $moveToBucket,
 			onDelete: {
 				if let activePhotometadata {
+					let photoToDelete = activePhotometadata
+					
+					shiftActivePhoto(beforeRemoving: photoToDelete.id)
+					
 					Task {
-						let success = await deletePhotos(localIdentifiers: [activePhotometadata.phaccessLocalIdentifier])
-						if success {
-							dismiss()
+						try? await Task.sleep(for: .milliseconds(300))
+						let success = await deletePhotos(localIdentifiers: [photoToDelete.phaccessLocalIdentifier])
+						if success && photoMetadatas.count <= 1 {
+							await MainActor.run { dismiss() }
 						}
 					}
 				}
 			},
 			onReanalyze: {
-				dismiss()
-				
 				if let activePhotometadata {
-					activePhotometadata.bucketRawValue = nil
-					activePhotometadata.swatches = []
+					let photoToReanalyze = activePhotometadata
 					
-					try? modelContext.save()
-					
-					Task {
-						try? await photoStoreManager.analyzePhotos()
+					if removesOnMove {
+						shiftActivePhoto(beforeRemoving: photoToReanalyze.id)
+						Task {
+							try? await Task.sleep(for: .milliseconds(300))
+							await MainActor.run {
+								withAnimation {
+									photoToReanalyze.bucketRawValue = nil
+									photoToReanalyze.swatches = []
+									try? modelContext.save()
+								}
+							}
+							try? await photoStoreManager.analyzePhotos()
+						}
+					} else {
+						withAnimation {
+							photoToReanalyze.bucketRawValue = nil
+							photoToReanalyze.swatches = []
+							try? modelContext.save()
+						}
+						Task { try? await photoStoreManager.analyzePhotos() }
 					}
 				}
 			},
 			onMove: {
-				dismiss()
-				
 				if let activePhotometadata, let targetBucket = moveToBucket {
-					activePhotometadata.bucketRawValue = targetBucket.rawValue
+					let photoToMove = activePhotometadata
 					
-					try? modelContext.save()
+					if removesOnMove {
+						shiftActivePhoto(beforeRemoving: photoToMove.id)
+						Task {
+							try? await Task.sleep(for: .milliseconds(300))
+							await MainActor.run {
+								withAnimation {
+									photoToMove.bucketRawValue = targetBucket.rawValue
+									try? modelContext.save()
+								}
+							}
+						}
+					} else {
+						withAnimation {
+							photoToMove.bucketRawValue = targetBucket.rawValue
+							try? modelContext.save()
+						}
+					}
 				}
 			}
 		)
@@ -183,21 +218,12 @@ struct PhotoDetailView: View {
 			ToolbarSpacer(placement: .topBarTrailing)
 			
 			ToolbarItem(placement: .topBarTrailing) {
-				Menu {
-					MoveMenuView { colorBucket in
-						moveToBucket = colorBucket
-					}
-					
-					Button("Reanalyze", systemImage: "arrow.2.squarepath") {
-						showReanalyzeAlert = true
-					}
-					
-					Button("Delete", systemImage: "trash", role: .destructive) {
-						showDeleteAlert = true
-					}
-				} label: {
-					Image(systemName: "ellipsis")
-				}
+				DetailMenuView(
+					bucket: activePhotometadata.bucket,
+					onMove: { colorBucket in moveToBucket = colorBucket },
+					onReanalyze: { showReanalyzeAlert = true },
+					onDelete: { showDeleteAlert = true }
+				)
 			}
 			
 			ToolbarSpacer(placement: .bottomBar)
@@ -233,6 +259,48 @@ struct PhotoDetailView: View {
 					)
 				}
 			}
+		}
+	}
+	
+	private func shiftActivePhoto(beforeRemoving targetID: PhotoMetadata.ID) {
+		guard let currentIndex = photoMetadatas.firstIndex(where: { $0.id == targetID }) else { return }
+		
+		if photoMetadatas.count > 1 {
+			let nextIndex = currentIndex < photoMetadatas.count - 1 ? currentIndex + 1 : currentIndex - 1
+			let nextID = photoMetadatas[nextIndex].id
+			
+			withAnimation(.easeInOut(duration: 0.3)) {
+				activeID = nextID
+			}
+		} else {
+			dismiss()
+		}
+	}
+}
+
+struct DetailMenuView: View, Equatable {
+	let bucket: ColorBucket?
+	let onMove: (ColorBucket) -> Void
+	let onReanalyze: () -> Void
+	let onDelete: () -> Void
+	
+	static func == (lhs: DetailMenuView, rhs: DetailMenuView) -> Bool {
+		return lhs.bucket == rhs.bucket
+	}
+	
+	var body: some View {
+		Menu {
+			MoveMenuView { colorBucket in
+				onMove(colorBucket)
+			}
+			Button("Reanalyze", systemImage: "arrow.2.squarepath") {
+				onReanalyze()
+			}
+			Button("Delete", systemImage: "trash", role: .destructive) {
+				onDelete()
+			}
+		} label: {
+			Image(systemName: "ellipsis")
 		}
 	}
 }
