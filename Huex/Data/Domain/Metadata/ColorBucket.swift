@@ -59,18 +59,18 @@ enum ColorBucket: String, Codable, CaseIterable, Identifiable {
 	
 	var symbol: String {
 		switch self {
-		case .black:  return "moon.fill"
+		case .black:  return "suit.spade.fill"
 		case .blue:   return "drop.fill"
 		case .brown:  return "shippingbox.fill"
-		case .gray:   return "mountain.2.fill"
+		case .gray:   return "wrench.and.screwdriver.fill"
 		case .green:  return "leaf.fill"
-		case .orange: return "sun.max.fill"
+		case .orange: return "carrot.fill"
 		case .pink:   return "heart.fill"
 		case .purple: return "crown.fill"
 		case .red:    return "flame.fill"
 		case .yellow: return "sparkles"
 		case .white:  return "cloud.fill"
-		case .mixed:  return "square.grid.2x2.fill"
+		case .mixed:  return "square.grid.2x2"
 		}
 	}
 }
