@@ -199,7 +199,7 @@ nonisolated func extractPalette(
 	from image: UIImage,
 	initialK: Int = 10,
 	mergeDistanceThreshold: Float = 6.0,
-	minCoveragePercentage: Double = 0.001
+	minCoveragePercentage: Double = 0 // Change if someday I wanna revert to less noisy swatches
 ) -> [Swatch] {
 	guard let rgbVectors = extractRGBVectors(from: image) else { return [] }
 	

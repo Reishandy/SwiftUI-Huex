@@ -40,8 +40,8 @@ class PhotoStoreManager: NSObject, PHPhotoLibraryChangeObserver {
 	}
 	
 	func start() async {
-		await self.fetchSycnAndAnalyzePhotos()
 		PHPhotoLibrary.shared().register(self)
+		await self.fetchSycnAndAnalyzePhotos()
 	}
 	
 	func analyzePhotos() async throws {

@@ -86,7 +86,7 @@ struct GalleryView: View {
 		}
 		.navigationDestination(item: $activePhoto) { photo in
 			PhotoDetailView(
-				photoMetadatas: photoMetadatas.reversed(),
+				photoMetadatas: filteredPhotos.reversed(),
 				initialPhotoID: photo.id,
 				namespace: galleryNamespace,
 				scrollPosition: $scrollPosition

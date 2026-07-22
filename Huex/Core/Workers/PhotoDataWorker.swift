@@ -43,22 +43,18 @@ actor PhotoDataWorker {
 				},
 				sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
 			)
-			descriptor.fetchLimit = 50
+			descriptor.fetchLimit = 10
 			
 			let metadatas = try modelContext.fetch(descriptor)
 			guard !metadatas.isEmpty else { break }
 			
-			for (index, metadata) in metadatas.enumerated() {
+			for metadata in metadatas {
 				if let result = await analyzePhoto(for: metadata.phaccessLocalIdentifier) {
 					metadata.swatches = result.swatches
 					metadata.bucket = result.bucket
 				} else {
 					metadata.swatches = []
 					metadata.bucket = .mixed
-				}
-				
-				if index > 0 && index % 10 == 0 {
-					try modelContext.save()
 				}
 				
 				try await Task.sleep(for: .milliseconds(300))

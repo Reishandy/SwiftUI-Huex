@@ -54,7 +54,7 @@ struct PaletteItemView: View {
 					Spacer()
 					
 					VStack(alignment: .trailing, spacing: 4) {
-						Text("\(swatch.percentage)%")
+						Text("\(swatch.weight * 100, specifier: "%.3f")%", )
 							.font(.callout)
 							.foregroundStyle(shouldUseWhite ? .white : .black)
 							.opacity(0.6)

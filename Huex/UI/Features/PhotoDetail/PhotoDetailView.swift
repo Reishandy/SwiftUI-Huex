@@ -127,13 +127,11 @@ struct PhotoDetailView: View {
 				if let activePhotometadata {
 					let photoToDelete = activePhotometadata
 					
-					shiftActivePhoto(beforeRemoving: photoToDelete.id)
-					
 					Task {
 						try? await Task.sleep(for: .milliseconds(300))
 						let success = await deletePhotos(localIdentifiers: [photoToDelete.phaccessLocalIdentifier])
-						if success && photoMetadatas.count <= 1 {
-							await MainActor.run { dismiss() }
+						if success {
+							shiftActivePhoto(beforeRemoving: photoToDelete.id)
 						}
 					}
 				}
