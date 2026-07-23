@@ -88,6 +88,7 @@ struct GalleryView: View {
 		.sheet(isPresented: $isShareeSheetShown) {
 			ShareSheetView(selectedPhotos: selectedPhotos.map{$0}.reversed()) // TODO: Optimize?
 				.presentationDetents([.large])
+				.presentationDragIndicator(.visible)
 				.presentationSizing(.page)
 				.navigationTransition(.zoom(sourceID: "shareSheetSource", in: galleryNamespace))
 		}

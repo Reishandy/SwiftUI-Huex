@@ -54,10 +54,8 @@ struct PhotoDetailView: View {
 	}
 	
 	var body: some View {
-		let isInitialLast = photoMetadatas.last?.id == initialPhotoID
-		
 		ScrollView(.horizontal) {
-			LazyHStack(spacing: 40) {
+			LazyHStack(spacing: 0) {
 				ForEach(photoMetadatas) { photoMetadata in
 					PhotoItemView(
 						phAsset: photoStoreManager.phAssets[photoMetadata.phaccessLocalIdentifier],
@@ -77,10 +75,9 @@ struct PhotoDetailView: View {
 			}
 			.scrollTargetLayout()
 		}
-		.defaultScrollAnchor(isInitialLast ? .trailing : .leading)
 		.scrollIndicators(.hidden)
-		.scrollTargetBehavior(.viewAligned)
-		.scrollPosition(id: $activeID)
+		.scrollTargetBehavior(.paging)
+		.scrollPosition(id: $activeID, anchor: .center)
 		.onChange(of: isZoomed) { _, isNowZoomed in
 			withAnimation(.easeInOut) {
 				isToolbarVisible = !isNowZoomed
@@ -88,7 +85,7 @@ struct PhotoDetailView: View {
 		}
 		.onChange(of: activeID) { _, newID in
 			if let newID {
-				scrollPosition = ScrollPosition(id: newID)
+				scrollPosition = ScrollPosition(id: newID, anchor: .center)
 				isZoomed = false
 			}
 		}
@@ -98,7 +95,6 @@ struct PhotoDetailView: View {
 				.opacity(isToolbarVisible ? 1 : 0)
 				.allowsHitTesting(isToolbarVisible)
 		}
-		.frame(maxWidth: .infinity, maxHeight: .infinity)
 		.ignoresSafeArea()
 		.toolbar { detailToolbar }
 		.sheet(isPresented: $isPaletteSheetShown) {
@@ -118,6 +114,7 @@ struct PhotoDetailView: View {
 			if let activePhotometadata {
 				ShareSheetView(selectedPhotos: [activePhotometadata])
 					.presentationDetents([.large])
+					.presentationDragIndicator(.visible)
 					.presentationSizing(.page)
 					.navigationTransition(.zoom(sourceID: "shareSheetSource", in: detailNamespace))
 			}

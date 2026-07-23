@@ -98,6 +98,7 @@ struct CollectionDetailView: View {
 		.sheet(isPresented: $isShareeSheetShown) {
 			ShareSheetView(selectedPhotos: selectedPhotos.map{$0}) // TODO: Optimize?
 				.presentationDetents([.large])
+				.presentationDragIndicator(.visible)
 				.presentationSizing(.page)
 				.navigationTransition(.zoom(sourceID: "shareSheetSource", in: collectionDetailNamespace))
 		}
