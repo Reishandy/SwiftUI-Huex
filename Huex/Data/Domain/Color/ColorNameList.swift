@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-struct Resource {
+nonisolated struct Resource {
 	static let hexToName: [Int: String] = [
 		0x000000: "Black",
 		0x000080: "Navy Blue",

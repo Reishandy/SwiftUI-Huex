@@ -25,7 +25,7 @@ struct Swatch: Codable, Identifiable, Hashable {
 		rgbToCMYK(rgb)
 	}
 	
-	static func make(hex: String, weight: Double = 1.0) -> Swatch {
+	nonisolated static func make(hex: String, weight: Double = 1.0) -> Swatch {
 		let rgbTuple = hexToRGB(hex)
 		let rgbSimd = simd_float3(Float(rgbTuple.r), Float(rgbTuple.g), Float(rgbTuple.b))
 		

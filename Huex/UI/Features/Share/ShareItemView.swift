@@ -45,8 +45,11 @@ struct ShareItemView: View {
 	private var metadataView: some View {
 		VStack {
 			HStack {
-				HStack {
-					// TODO: App Icon
+				HStack(spacing: 2) {
+					Image("icon")
+						.resizable()
+						.frame(width: 25, height: 25)
+					
 					Text("Huex")
 						.font(.system(.footnote, design: .monospaced))
 						.bold()

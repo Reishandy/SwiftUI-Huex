@@ -31,8 +31,8 @@ struct GalleryTitleView: View {
 						.foregroundStyle(
 							LinearGradient(
 								colors: [.blue, .purple, .pink, .orange],
-								startPoint: .topLeading,
-								endPoint: .bottomTrailing
+								startPoint: .bottomTrailing,
+								endPoint: .topLeading
 							)
 						)
 				}

@@ -23,7 +23,7 @@
 
 import Foundation
 
-public enum NameThatColor {
+nonisolated public enum NameThatColor {
 	
 	/// Finds the closest descriptive color name for a given RGB tuple.
 	public static func descriptiveName(for rgb: (r: Int, g: Int, b: Int)) -> String {
