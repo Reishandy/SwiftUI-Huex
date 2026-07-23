@@ -97,6 +97,27 @@ struct PhotoCellView: View {
 						}
 				)
 		)
+		.accessibilityElement(children: .combine)
+		.accessibilityLabel(
+			"\(photoMetadata.bucket?.displayName ?? "Uncategorized") photo"
+		)
+		.accessibilityValue(isSelected ? "Selected" : "Not selected")
+		.accessibilityInputLabels([
+			"Photo",
+			photoMetadata.bucket?.displayName ?? "Photo"
+		])
+		.accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : [.isButton])
+		.accessibilityHint(
+			isSelect
+			? "Double tap to toggle selection."
+			: "Double tap to open details. Double tap and hold to select."
+		)
+		.accessibilityAction(named: "Select Photo") {
+			if !isSelect {
+				isSelect = true
+				selectedPhotos = [photoMetadata]
+			}
+		}
 	}
 }
 
