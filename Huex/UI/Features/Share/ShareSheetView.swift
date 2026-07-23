@@ -15,7 +15,7 @@ struct ShareSheetView: View {
 	let selectedPhotos: [PhotoMetadata]
 	
 	@State private var selectedMode: ShareMode = .minimal
-	@State private var metadataScale: CGFloat = 1.0
+	@State private var metadataScale: CGFloat = 1.5
 	@State private var loadedImages: [String: UIImage] = [:]
 	
 	@State private var itemHeights: [String: CGFloat] = [:]
