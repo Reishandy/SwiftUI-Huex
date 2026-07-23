@@ -11,8 +11,6 @@ import Foundation
 import UIKit
 import simd
 
-// TODO: Cleanup unnecessary comments
-
 // MARK: - Pixel extraction
 
 /// Reads RGB values from `image`, stratified-sampled down to roughly
@@ -221,12 +219,6 @@ nonisolated func extractPalette(
 
 
 // MARK: - Stage B: bucketing
-
-struct CategorizationResult {
-	var bucket: ColorBucket
-	var confidence: Double
-	var margin: Double
-}
 
 /// Ranks swatches by chroma (weight as tiebreaker), then assigns a bucket to
 /// whichever wins. This is what picks "red" over "white" for something like
