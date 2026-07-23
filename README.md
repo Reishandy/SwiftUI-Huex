@@ -3,7 +3,7 @@
 
   # Huex
 
-  A fun, colorful experiment that breathes new life into your camera roll. Discover the hidden palettes in your memories, organize your gallery by hue, and share your unique visual aesthetic.
+  Rediscover your memories through color. Huex reveals the hidden palettes in your photos, organizes your gallery by hue, and lets you share the unique visual story behind every moment, all processed privately on your device.
   
   <!-- Badges -->
   <p>
@@ -18,7 +18,9 @@
 
 ## Overview
 
-Huex is a passion project built entirely for fun, because why just look at your photos when you can experience their colors? This app playfully scans your photo library to extract the dominant colors from your pictures, allowing you to view your memories through an entirely new, chromatic lens. Whether you're an artist looking for palette inspiration or just someone who loves a good aesthetic, Huex turns your gallery into a vibrant spectrum.
+Huex started as a passion project born from a simple question: what if you could experience your photo library through color instead of just dates?
+
+By analyzing every photo entirely on your device, Huex uncovers the dominant colors hidden in your memories, transforms them into beautiful palettes, and organizes your gallery into a vibrant spectrum. Whether you're searching for artistic inspiration or simply curious about the colors that define your life, Huex offers a playful new way to rediscover your camera roll.
 
 ### iOS Previews
 
