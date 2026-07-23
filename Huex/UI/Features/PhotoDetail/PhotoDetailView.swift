@@ -28,6 +28,7 @@ struct PhotoDetailView: View {
 	@State private var isToolbarVisible = true
 	@State private var isPaletteSheetShown = false
 	@State private var currentPaletteDetent: PresentationDetent = .medium
+	@State private var isShareeSheetShown = false
 	
 	@State private var showDeleteAlert = false
 	@State private var showReanalyzeAlert = false
@@ -53,49 +54,49 @@ struct PhotoDetailView: View {
 	}
 	
 	var body: some View {
-		GeometryReader { geometry in
-			let size = geometry.size
-			
-			ScrollView(.horizontal) {
-				LazyHStack(spacing: 0) {
-					ForEach(photoMetadatas) { photoMetadata in
-						PhotoItemView(
-							phAsset: photoStoreManager.phAssets[photoMetadata.phaccessLocalIdentifier],
-							targetSize: PHImageManagerMaximumSize,
-							contentMode: .fit
-						)
-						.zoomable(isZoomed: $isZoomed, maxZoom: 10.0) {
-							withAnimation {
-								isToolbarVisible.toggle()
-							}
+		let isInitialLast = photoMetadatas.last?.id == initialPhotoID
+		
+		ScrollView(.horizontal) {
+			LazyHStack(spacing: 40) {
+				ForEach(photoMetadatas) { photoMetadata in
+					PhotoItemView(
+						phAsset: photoStoreManager.phAssets[photoMetadata.phaccessLocalIdentifier],
+						targetSize: PHImageManagerMaximumSize,
+						contentMode: .fit
+					)
+					.frame(maxWidth: .infinity, maxHeight: .infinity)
+					.zoomable(isZoomed: $isZoomed, maxZoom: 10.0) {
+						withAnimation {
+							isToolbarVisible.toggle()
 						}
-						.frame(width: size.width, height: size.height)
-						.contentShape(Rectangle())
-						.id(photoMetadata.id)
 					}
-				}
-				.scrollTargetLayout()
-			}
-			.scrollIndicators(.hidden)
-			.scrollTargetBehavior(.paging)
-			.scrollPosition(id: $activeID)
-			.onChange(of: isZoomed) { _, isNowZoomed in
-				withAnimation(.easeInOut) {
-					isToolbarVisible = !isNowZoomed
+					.containerRelativeFrame([.horizontal, .vertical])
+					.contentShape(Rectangle())
+					.id(photoMetadata.id)
 				}
 			}
-			.onChange(of: activeID) { _, newID in
-				if let newID {
-					scrollPosition = ScrollPosition(id: newID, anchor: .center)
-					isZoomed = false
-				}
+			.scrollTargetLayout()
+		}
+		.defaultScrollAnchor(isInitialLast ? .trailing : .leading)
+		.scrollIndicators(.hidden)
+		.scrollTargetBehavior(.viewAligned)
+		.scrollPosition(id: $activeID)
+		.onChange(of: isZoomed) { _, isNowZoomed in
+			withAnimation(.easeInOut) {
+				isToolbarVisible = !isNowZoomed
 			}
-			.overlay(alignment: .bottom) {
-				PhotoFilmstripView(photoMetadatas: photoMetadatas, activeID: $activeID)
-					.padding(.bottom, 90)
-					.opacity(isToolbarVisible ? 1 : 0)
-					.allowsHitTesting(isToolbarVisible)
+		}
+		.onChange(of: activeID) { _, newID in
+			if let newID {
+				scrollPosition = ScrollPosition(id: newID)
+				isZoomed = false
 			}
+		}
+		.overlay(alignment: .bottom) {
+			PhotoFilmstripView(photoMetadatas: photoMetadatas, activeID: $activeID)
+				.padding(.bottom, 90)
+				.opacity(isToolbarVisible ? 1 : 0)
+				.allowsHitTesting(isToolbarVisible)
 		}
 		.frame(maxWidth: .infinity, maxHeight: .infinity)
 		.ignoresSafeArea()
@@ -110,7 +111,15 @@ struct PhotoDetailView: View {
 				.presentationDragIndicator(.visible)
 				.presentationSizing(.page)
 				.presentationContentInteraction(.resizes)
-				.navigationTransition(.zoom(sourceID: "sheetSource", in: detailNamespace))
+				.navigationTransition(.zoom(sourceID: "paletteSheetSource", in: detailNamespace))
+			}
+		}
+		.sheet(isPresented: $isShareeSheetShown) {
+			if let activePhotometadata {
+				ShareSheetView(selectedPhotos: [activePhotometadata])
+					.presentationDetents([.large])
+					.presentationSizing(.page)
+					.navigationTransition(.zoom(sourceID: "shareSheetSource", in: detailNamespace))
 			}
 		}
 		.statusBarHidden(!isToolbarVisible)
@@ -206,10 +215,10 @@ struct PhotoDetailView: View {
 			}
 			
 			ToolbarItem(placement: UIDevice.current.userInterfaceIdiom == .pad ? .topBarTrailing : .bottomBar) {
-				// TODO: Share
 				Button("Share", systemImage: "square.and.arrow.up") {
-					
+					isShareeSheetShown = true
 				}
+				.matchedTransitionSource(id: "shareSheetSource", in: detailNamespace)
 			}
 			
 			ToolbarSpacer(placement: .topBarTrailing)
@@ -244,7 +253,7 @@ struct PhotoDetailView: View {
 					.font(.title3)
 					.bold()
 					.padding()
-					.matchedTransitionSource(id: "sheetSource", in: detailNamespace)
+					.matchedTransitionSource(id: "paletteSheetSource", in: detailNamespace)
 					.gesture(
 						DragGesture()
 							.onEnded { value in

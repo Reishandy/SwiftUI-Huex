@@ -22,7 +22,8 @@ struct CollectionDetailView: View {
 	@State private var isSelect = false
 	@State private var selectedPhotos: Set<PhotoMetadata> = []
 	@State private var activePhoto: PhotoMetadata?
-	@State private var isShowingDetail = false // Workaround since this is nested
+	@State private var isShowingDetail = false
+	@State private var isShareeSheetShown = false
 	
 	@State private var showDeleteAlert = false
 	@State private var showReanalyzeAlert = false
@@ -72,6 +73,7 @@ struct CollectionDetailView: View {
 			SelectionToolbar(
 				isSelect: $isSelect,
 				selectedPhotos: $selectedPhotos,
+				namespace: collectionDetailNamespace,
 				shouldShowSelect: !photoMetadatas.isEmpty,
 				onSelectAll: {
 					withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
@@ -87,8 +89,17 @@ struct CollectionDetailView: View {
 				},
 				onMove: { colorBucket in
 					moveToBucket = colorBucket
+				},
+				onShare: {
+					isShareeSheetShown = true
 				}
 			)
+		}
+		.sheet(isPresented: $isShareeSheetShown) {
+			ShareSheetView(selectedPhotos: selectedPhotos.map{$0}) // TODO: Optimize?
+				.presentationDetents([.large])
+				.presentationSizing(.page)
+				.navigationTransition(.zoom(sourceID: "shareSheetSource", in: collectionDetailNamespace))
 		}
 		.navigationDestination(isPresented: $isShowingDetail) {
 			if let activePhoto {

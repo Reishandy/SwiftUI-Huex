@@ -11,11 +11,13 @@ struct SelectionToolbar: ToolbarContent {
 	@Binding var isSelect: Bool
 	@Binding var selectedPhotos: Set<PhotoMetadata>
 	
+	let namespace: Namespace.ID
 	let shouldShowSelect: Bool
 	let onSelectAll: () -> Void
 	let onDelete: () -> Void
 	let onReanalyze: () -> Void
 	let onMove: (ColorBucket) -> Void
+	let onShare: () -> Void
 	
 	var body: some ToolbarContent {
 		if isSelect {
@@ -75,11 +77,11 @@ struct SelectionToolbar: ToolbarContent {
 		
 		if isSelect {
 			ToolbarItem(placement: .bottomBar) {
-				// TODO: Share
 				Button("Share", systemImage: "square.and.arrow.up") {
-					
+					onShare()
 				}
 				.disabled(selectedPhotos.isEmpty)
+				.matchedTransitionSource(id: "shareSheetSource", in: namespace)
 			}
 			
 			ToolbarSpacer(placement: .bottomBar)
@@ -104,17 +106,21 @@ struct SelectionToolbar: ToolbarContent {
 }
 
 #Preview {
+	@Previewable @Namespace var namespace
+	
 	NavigationStack {
 		Text("View")
 			.toolbar {
 				SelectionToolbar(
 					isSelect: .constant(true),
 					selectedPhotos: .constant([PhotoMetadata(phaccessLocalIdentifier: "")]),
+					namespace: namespace,
 					shouldShowSelect: true,
 					onSelectAll: {},
 					onDelete: {},
 					onReanalyze: {},
-					onMove: { _ in }
+					onMove: { _ in },
+					onShare: {}
 				)
 			}
 	}

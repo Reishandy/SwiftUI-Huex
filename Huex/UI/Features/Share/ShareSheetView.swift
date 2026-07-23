@@ -19,21 +19,32 @@ struct ShareSheetView: View {
     var body: some View {
 		NavigationStack {
 			ScrollView(.horizontal, showsIndicators: false) {
-				LazyHStack(spacing: 16) {
+				LazyHStack(spacing: 0) {
 					ForEach(selectedPhotos) { photo in
-						ScrollView(.vertical, showsIndicators: false) {
-							ShareItemView(
-								phAsset: photoStoreManager.phAssets[photo.phaccessLocalIdentifier],
-								photoMetadata: photo,
-								shareMode: selectedMode
-							)
+						GeometryReader { geometry in
+							ScrollView(.vertical, showsIndicators: false) {
+								VStack {
+									Spacer()
+									
+									ShareItemView(
+										phAsset: photoStoreManager.phAssets[photo.phaccessLocalIdentifier],
+										photoMetadata: photo,
+										shareMode: selectedMode
+									)
+									.padding(.horizontal, 20)
+									
+									Spacer()
+								}
+								.frame(minHeight: geometry.size.height)
+							}
 						}
 						.containerRelativeFrame(.horizontal)
 					}
 				}
-				.padding(.horizontal, 20)
+				.scrollTargetLayout()
 			}
-			.navigationTitle("Share")
+			.scrollTargetBehavior(.paging)
+			.navigationTitle("Share\(selectedPhotos.count > 1 ? " \(selectedPhotos.count) photos" : "")")
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar {
 				ToolbarItem(placement: .topBarLeading) {

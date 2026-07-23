@@ -25,6 +25,7 @@ struct GalleryView: View {
 	@State private var selectedPhotos: Set<PhotoMetadata> = []
 	@State private var activePhoto: PhotoMetadata?
 	@State private var isCollectionSheetShown = false
+	@State private var isShareeSheetShown = false
 	@State private var selectedBucket: ColorBucket?
 	
 	@State private var showDeleteAlert = false
@@ -83,6 +84,12 @@ struct GalleryView: View {
 				.presentationSizing(.page)
 				.presentationContentInteraction(.resizes)
 				.navigationTransition(.zoom(sourceID: "sheetSource", in: galleryNamespace))
+		}
+		.sheet(isPresented: $isShareeSheetShown) {
+			ShareSheetView(selectedPhotos: selectedPhotos.map{$0}.reversed()) // TODO: Optimize?
+				.presentationDetents([.large])
+				.presentationSizing(.page)
+				.navigationTransition(.zoom(sourceID: "shareSheetSource", in: galleryNamespace))
 		}
 		.navigationDestination(item: $activePhoto) { photo in
 			PhotoDetailView(
@@ -170,6 +177,7 @@ struct GalleryView: View {
 		SelectionToolbar(
 			isSelect: $isSelect,
 			selectedPhotos: $selectedPhotos,
+			namespace: galleryNamespace,
 			shouldShowSelect: !filteredPhotos.isEmpty,
 			onSelectAll: {
 				withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
@@ -185,6 +193,9 @@ struct GalleryView: View {
 			},
 			onMove: { colorBucket in
 				moveToBucket = colorBucket
+			},
+			onShare: {
+				isShareeSheetShown = true
 			}
 		)
 		

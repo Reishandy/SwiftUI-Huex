@@ -45,6 +45,7 @@ struct ShareItemView: View {
 						.bold()
 						.lineLimit(1)
 						.minimumScaleFactor(0.5)
+						.foregroundStyle(.black)
 				}
 				
 				Spacer(minLength: 8)
@@ -54,10 +55,13 @@ struct ShareItemView: View {
 						.font(.system(.footnote, design: .rounded))
 						.lineLimit(1)
 						.minimumScaleFactor(0.5)
+						.foregroundStyle(.black)
 					
-					RoundedRectangle(cornerRadius: 4)
-						.foregroundStyle(photoMetadata.bucket?.color ?? .gray)
-						.frame(width: 14, height: 14)
+					Image(systemName: photoMetadata.bucket?.symbol ?? "questionmark")
+						.foregroundStyle(photoMetadata.bucket?.color ?? .secondary)
+						.font(.system(.footnote, design: .rounded))
+						.lineLimit(1)
+						.minimumScaleFactor(0.5)
 						.shadow(radius: 2)
 				}
 			}
