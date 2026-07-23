@@ -17,6 +17,8 @@ struct ShareSheetView: View {
 	@State private var selectedMode: ShareMode = .minimal
 	@State private var loadedImages: [String: UIImage] = [:]
 	
+	@State private var itemHeights: [String: CGFloat] = [:]
+	
 	private var allImagesLoaded: Bool {
 		selectedPhotos.allSatisfy { loadedImages[$0.phaccessLocalIdentifier] != nil }
 	}
@@ -35,12 +37,14 @@ struct ShareSheetView: View {
 		}
 	}
 	
-    var body: some View {
+	var body: some View {
 		NavigationStack {
 			ScrollView(.horizontal, showsIndicators: false) {
 				LazyHStack(spacing: 0) {
 					ForEach(selectedPhotos) { photo in
 						GeometryReader { geometry in
+							let scale = (geometry.size.width - 20) / 800
+							
 							ScrollView(.vertical, showsIndicators: false) {
 								VStack {
 									Spacer()
@@ -54,7 +58,26 @@ struct ShareSheetView: View {
 										topPalette: photo.topPalette,
 										shareMode: selectedMode
 									)
-									.padding(.horizontal, 20)
+									.frame(width: 800)
+									.fixedSize(horizontal: true, vertical: true)
+									.background {
+										GeometryReader { proxy in
+											Color.clear
+												.onAppear {
+													DispatchQueue.main.async {
+														itemHeights[photo.phaccessLocalIdentifier] = proxy.size.height
+													}
+												}
+												.onChange(of: proxy.size.height) { _, newHeight in
+													itemHeights[photo.phaccessLocalIdentifier] = newHeight
+												}
+										}
+									}
+									.scaleEffect(scale)
+									.frame(
+										width: geometry.size.width,
+										height: itemHeights[photo.phaccessLocalIdentifier].map { $0 * scale }
+									)
 									
 									Spacer()
 								}
@@ -74,7 +97,7 @@ struct ShareSheetView: View {
 				ToolbarItem(placement: .topBarLeading) {
 					if allImagesLoaded {
 						ShareLink(items: sharablePhotos, preview: { item in
-							SharePreview("1 Image", image: Image(systemName: "photo"))
+							SharePreview("1 Image", image: Image("icon"))
 						}) {
 							Image(systemName: "square.and.arrow.up")
 						}
@@ -105,24 +128,5 @@ struct ShareSheetView: View {
 			}
 			.animation(.default, value: selectedMode)
 		}
-    }
-}
-
-#Preview {
-	let mockContainer = PreviewData.container
-	
-	let fetchDescriptor = FetchDescriptor<PhotoMetadata>()
-	let allMockPhotos = (try? mockContainer.mainContext.fetch(fetchDescriptor)) ?? []
-	
-	let samplePhotos = Array(allMockPhotos.prefix(3))
-	
-	return Text("View")
-		.frame(maxWidth: .infinity, maxHeight: .infinity)
-		.background(.blue)
-		.sheet(isPresented: .constant(true)) {
-			ShareSheetView(selectedPhotos: samplePhotos)
-				.presentationDetents([.large])
-				.environment(PhotoStoreManager())
-				.modelContainer(mockContainer)
-		}
+	}
 }
