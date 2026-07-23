@@ -11,8 +11,17 @@ struct PaletteSheetView: View {
 	let photoMetadata: PhotoMetadata
 	let isExpanded: Bool
 	
+	@State private var displayMode: PaletteDisplayMode = .palette
+	
+	private var displayedSwatches: [Swatch] {
+		switch displayMode {
+		case .palette: photoMetadata.topPalette
+		case .all: photoMetadata.swatches.sorted { $0.weight > $1.weight }
+		}
+	}
+	
 	var body: some View {
-		Group {
+		NavigationStack {
 			if photoMetadata.swatches.isEmpty {
 				EmptyStateView(
 					systemImage: "swatchpalette",
@@ -23,16 +32,38 @@ struct PaletteSheetView: View {
 				ScrollView {
 					PaletteStripView(swatches: photoMetadata.swatches)
 						.padding(.horizontal, 25)
-						.padding(.top, 30)
 					
-					ForEach(photoMetadata.swatches.sorted { $0.weight > $1.weight }) { swatch in
+					ForEach(displayedSwatches.sorted { $0.weight > $1.weight }) { swatch in
 						PaletteItemView(swatch: swatch, isExpanded: isExpanded)
 					}
 					.padding(.horizontal, 15)
 				}
+				.navigationTitle(displayMode == .palette ? "Color Palette" : "All Colors")
+				.navigationBarTitleDisplayMode(.inline)
+				.toolbar {
+					ToolbarItem(placement: .topBarTrailing) {
+						Menu {
+							Picker("Colors", selection: $displayMode) {
+								ForEach(PaletteDisplayMode.allCases) { mode in
+									Text(mode.rawValue).tag(mode)
+								}
+							}
+						} label: {
+							Image(systemName: "line.3.horizontal.decrease")
+						}
+					}
+				}
+				.animation(.default, value: displayMode)
 			}
 		}
 	}
+}
+
+enum PaletteDisplayMode: String, CaseIterable, Identifiable {
+	var id: Self { self }
+	
+	case palette = "Palette"
+	case all = "All"
 }
 
 #Preview {

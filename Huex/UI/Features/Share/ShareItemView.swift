@@ -14,6 +14,7 @@ struct ShareItemView: View {
 	let bucketSymbol: String
 	let bucketColor: Color
 	let swatches: [Swatch]
+	let topPalette: [Swatch]
 	let shareMode: ShareMode
 	
 	private var sortedSwatches: [Swatch] {
@@ -50,33 +51,48 @@ struct ShareItemView: View {
 		VStack {
 			HStack {
 				HStack(spacing: 2) {
-					Image("icon")
-						.resizable()
-						.frame(width: 25, height: 25)
+					if shareMode == .detailed {
+						Image("icon")
+							.resizable()
+							.frame(width: 22, height: 22)
+					}
 					
 					Text("Huex")
-						.font(.system(.footnote, design: .monospaced))
+						.font(.system(.footnote, design: .rounded))
 						.bold()
 						.lineLimit(1)
 						.minimumScaleFactor(0.5)
 						.foregroundStyle(.black)
+						.opacity(shareMode == .detailed ? 1 : 0.5)
 				}
+				.geometryGroup()
 				
 				Spacer(minLength: 8)
 				
-				HStack(spacing: 6) {
-					Text(bucketDisplayName)
-						.font(.system(.footnote, design: .rounded))
-						.lineLimit(1)
-						.minimumScaleFactor(0.5)
-						.foregroundStyle(.black)
-					
-					Image(systemName: bucketSymbol)
-						.foregroundStyle(bucketColor)
-						.font(.system(.footnote, design: .rounded))
-						.lineLimit(1)
-						.minimumScaleFactor(0.5)
-						.shadow(radius: 2)
+				if shareMode == .detailed {
+					HStack(spacing: 6) {
+						Text(bucketDisplayName)
+							.font(.system(.footnote, design: .rounded))
+							.lineLimit(1)
+							.minimumScaleFactor(0.5)
+							.foregroundStyle(.black)
+						
+						Image(systemName: bucketSymbol)
+							.foregroundStyle(bucketColor)
+							.font(.system(.footnote, design: .rounded))
+							.lineLimit(1)
+							.minimumScaleFactor(0.5)
+							.shadow(radius: 2)
+					}
+				} else {
+					HStack(spacing: 3) {
+						ForEach(topPalette.prefix(5)) { swatch in
+							RoundedRectangle(cornerRadius: 4)
+								.fill(Color(UIColor(hex: swatch.hex) ?? .lightGray))
+								.frame(width: 14, height: 14)
+								.shadow(radius: 2)
+						}
+					}
 				}
 			}
 			
@@ -105,6 +121,7 @@ struct ShareItemView: View {
 				bucketSymbol: "paintpalette",
 				bucketColor: .white,
 				swatches: PreviewData.sampleSwatches,
+				topPalette: PreviewData.sampleSwatches,
 				shareMode: .minimal
 			)
 			
@@ -114,11 +131,12 @@ struct ShareItemView: View {
 				bucketSymbol: "paintpalette",
 				bucketColor: .red,
 				swatches: PreviewData.sampleSwatches,
+				topPalette: PreviewData.sampleSwatches,
 				shareMode: .detailed
 			)
 		}
 		.padding(24)
+		.frame(maxWidth: .infinity, maxHeight: .infinity)
+		.background(.blue)
 	}
-	.frame(maxWidth: .infinity, maxHeight: .infinity)
-	.background(.blue)
 }

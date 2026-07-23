@@ -33,6 +33,10 @@ class PhotoMetadata: Identifiable, Equatable {
 		set { bucketRawValue = newValue?.rawValue }
 	}
 	
+	var topPalette: [Swatch] {
+		topPaletteSwatches(from: swatches)
+	}
+	
 	init(
 		phaccessLocalIdentifier: String,
 		timestamp: Date = .now,

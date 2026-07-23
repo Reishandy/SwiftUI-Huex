@@ -324,3 +324,53 @@ nonisolated func analyzeImage(_ image: UIImage) -> (bucket: ColorBucket, swatche
 	let result = categorize(swatches: swatches)
 	return (bucket: result.bucket, swatches: swatches)
 }
+
+// MARK: Palette
+
+/// Picks up to `count` swatches that best represent the image: weighted
+/// toward coverage and saturation, but diversified so near-duplicate hues
+/// (JPEG noise, gradients) don't crowd out genuinely distinct colors.
+/// Images that already merged down to <= count swatches (flags, minimal
+/// palettes) just return everything — nothing extra to hide.
+nonisolated func topPaletteSwatches(
+	from swatches: [Swatch],
+	count: Int = 5,
+	minCoverage: Double = 0.01
+) -> [Swatch] {
+	guard !swatches.isEmpty else { return [] }
+	
+	let eligibleSwatches = swatches.filter { $0.weight >= minCoverage }
+	let workingSwatches = eligibleSwatches.isEmpty ? swatches : eligibleSwatches
+	
+	func vibrancyScore(_ s: Swatch) -> Double {
+		let chromaFactor = min(s.lch.c / 100.0, 1.0)
+		// sqrt(weight) keeps one dominant swatch from steamrolling everything
+		return sqrt(s.weight) * (0.4 + 0.6 * chromaFactor)
+	}
+	
+	var candidates = workingSwatches.sorted { vibrancyScore($0) > vibrancyScore($1) }
+	guard candidates.count > count else { return candidates }
+	
+	var selected = [candidates.removeFirst()]
+	let maxLabDistance = 150.0 // rough Lab-space diagonal, for normalizing
+	
+	while selected.count < count && !candidates.isEmpty {
+		var bestIndex = 0
+		var bestScore = -Double.infinity
+		
+		for (i, candidate) in candidates.enumerated() {
+			let nearest = selected.map { labDistance(candidate, $0) }.min() ?? 0
+			let distinctiveness = min(nearest / maxLabDistance, 1.0)
+			let combined = vibrancyScore(candidate) * 0.6 + distinctiveness * 0.4
+			
+			if combined > bestScore {
+				bestScore = combined
+				bestIndex = i
+			}
+		}
+		
+		selected.append(candidates.remove(at: bestIndex))
+	}
+	
+	return selected.sorted { $0.weight > $1.weight }
+}

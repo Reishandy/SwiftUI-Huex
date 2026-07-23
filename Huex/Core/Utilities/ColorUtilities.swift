@@ -150,3 +150,10 @@ func shouldUseWhiteText(onHex hex: String) -> Bool? {
 	
 	return lab.x < 50.0
 }
+
+nonisolated func labDistance(_ a: Swatch, _ b: Swatch) -> Double {
+	let dl = a.lab.l - b.lab.l
+	let da = a.lab.a - b.lab.a
+	let db = a.lab.b - b.lab.b
+	return sqrt(dl * dl + da * da + db * db)
+}

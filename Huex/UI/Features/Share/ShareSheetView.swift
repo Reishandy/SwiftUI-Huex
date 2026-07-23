@@ -29,7 +29,8 @@ struct ShareSheetView: View {
 				bucketDisplayName: photo.bucket?.displayName ?? "Unknown",
 				bucketSymbol: photo.bucket?.symbol ?? "questionmark",
 				bucketColor: photo.bucket?.color ?? .secondary,
-				swatches: photo.swatches
+				swatches: photo.swatches,
+				topPalette: photo.topPalette
 			)
 		}
 	}
@@ -50,6 +51,7 @@ struct ShareSheetView: View {
 										bucketSymbol: photo.bucket?.symbol ?? "questionmark",
 										bucketColor: photo.bucket?.color ?? .secondary,
 										swatches: photo.swatches,
+										topPalette: photo.topPalette,
 										shareMode: selectedMode
 									)
 									.padding(.horizontal, 20)
