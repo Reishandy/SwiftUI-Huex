@@ -25,7 +25,7 @@ struct GalleryView: View {
 	@State private var selectedPhotos: Set<PhotoMetadata> = []
 	@State private var activePhoto: PhotoMetadata?
 	@State private var isCollectionSheetShown = false
-	@State private var isShareeSheetShown = false
+	@State private var isShareSheetShown = false
 	@State private var selectedBucket: ColorBucket?
 	
 	@State private var showDeleteAlert = false
@@ -85,7 +85,7 @@ struct GalleryView: View {
 				.presentationContentInteraction(.resizes)
 				.navigationTransition(.zoom(sourceID: "sheetSource", in: galleryNamespace))
 		}
-		.sheet(isPresented: $isShareeSheetShown) {
+		.sheet(isPresented: $isShareSheetShown) {
 			ShareSheetView(selectedPhotos: selectedPhotos.map{$0}.reversed()) // TODO: Optimize?
 				.presentationDetents([.large])
 				.presentationDragIndicator(.visible)
@@ -196,7 +196,7 @@ struct GalleryView: View {
 				moveToBucket = colorBucket
 			},
 			onShare: {
-				isShareeSheetShown = true
+				isShareSheetShown = true
 			}
 		)
 		

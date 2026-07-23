@@ -28,7 +28,7 @@ struct PhotoDetailView: View {
 	@State private var isToolbarVisible = true
 	@State private var isPaletteSheetShown = false
 	@State private var currentPaletteDetent: PresentationDetent = .medium
-	@State private var isShareeSheetShown = false
+	@State private var isShareSheetShown = false
 	
 	@State private var showDeleteAlert = false
 	@State private var showReanalyzeAlert = false
@@ -110,7 +110,7 @@ struct PhotoDetailView: View {
 				.navigationTransition(.zoom(sourceID: "paletteSheetSource", in: detailNamespace))
 			}
 		}
-		.sheet(isPresented: $isShareeSheetShown) {
+		.sheet(isPresented: $isShareSheetShown) {
 			if let activePhotometadata {
 				ShareSheetView(selectedPhotos: [activePhotometadata])
 					.presentationDetents([.large])
@@ -213,7 +213,7 @@ struct PhotoDetailView: View {
 			
 			ToolbarItem(placement: UIDevice.current.userInterfaceIdiom == .pad ? .topBarTrailing : .bottomBar) {
 				Button("Share", systemImage: "square.and.arrow.up") {
-					isShareeSheetShown = true
+					isShareSheetShown = true
 				}
 				.matchedTransitionSource(id: "shareSheetSource", in: detailNamespace)
 			}

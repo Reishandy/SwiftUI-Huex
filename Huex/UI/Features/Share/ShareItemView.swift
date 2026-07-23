@@ -9,30 +9,38 @@ import SwiftUI
 import Photos
 
 struct ShareItemView: View {
-	let phAsset: PHAsset?
-	let photoMetadata: PhotoMetadata
+	let image: UIImage?
+	let bucketDisplayName: String
+	let bucketSymbol: String
+	let bucketColor: Color
+	let swatches: [Swatch]
 	let shareMode: ShareMode
 	
-    var body: some View {
+	var body: some View {
 		VStack {
 			Spacer(minLength: 0)
 			
 			VStack(spacing: 0) {
-				PhotoItemView(
-					phAsset: phAsset,
-					targetSize: PHImageManagerMaximumSize,
-					contentMode: .fit
-				)
+				if let image {
+					Image(uiImage: image)
+						.resizable()
+						.aspectRatio(contentMode: .fit)
+				} else {
+					Rectangle()
+						.fill(Color.secondary.opacity(0.1))
+						.aspectRatio(3/4, contentMode: .fit)
+						.overlay { Image(systemName: "photo.trianglebadge.exclamationmark") }
+				}
 				
 				if shareMode != .clean {
 					metadataView
 				}
 			}
-			.clipShape(RoundedRectangle(cornerRadius: 12))
+			.clipShape(RoundedRectangle(cornerRadius: shareMode == .clean ? 0 : 12))
 			
 			Spacer(minLength: 0)
 		}
-    }
+	}
 	
 	@ViewBuilder
 	private var metadataView: some View {
@@ -51,14 +59,14 @@ struct ShareItemView: View {
 				Spacer(minLength: 8)
 				
 				HStack(spacing: 6) {
-					Text(photoMetadata.bucket?.displayName ?? "Unknown")
+					Text(bucketDisplayName)
 						.font(.system(.footnote, design: .rounded))
 						.lineLimit(1)
 						.minimumScaleFactor(0.5)
 						.foregroundStyle(.black)
 					
-					Image(systemName: photoMetadata.bucket?.symbol ?? "questionmark")
-						.foregroundStyle(photoMetadata.bucket?.color ?? .secondary)
+					Image(systemName: bucketSymbol)
+						.foregroundStyle(bucketColor)
 						.font(.system(.footnote, design: .rounded))
 						.lineLimit(1)
 						.minimumScaleFactor(0.5)
@@ -68,7 +76,7 @@ struct ShareItemView: View {
 			
 			if shareMode == .detailed {
 				VStack {
-					ForEach(photoMetadata.swatches) { swatch in
+					ForEach(swatches) { swatch in
 						SharePaletteItemView(swatch: swatch)
 					}
 				}
@@ -84,22 +92,20 @@ struct ShareItemView: View {
 	ScrollView {
 		VStack(spacing: 10) {
 			ShareItemView(
-				phAsset: nil,
-				photoMetadata: PhotoMetadata(
-					phaccessLocalIdentifier: "",
-					swatches: PreviewData.sampleSwatches,
-					bucket: .white
-				),
+				image: nil,
+				bucketDisplayName: "White",
+				bucketSymbol: "paintpalette",
+				bucketColor: .white,
+				swatches: PreviewData.sampleSwatches,
 				shareMode: .minimal
 			)
 			
 			ShareItemView(
-				phAsset: nil,
-				photoMetadata: PhotoMetadata(
-					phaccessLocalIdentifier: "",
-					swatches: PreviewData.sampleSwatches,
-					bucket: .red
-				),
+				image: nil,
+				bucketDisplayName: "Red",
+				bucketSymbol: "paintpalette",
+				bucketColor: .red,
+				swatches: PreviewData.sampleSwatches,
 				shareMode: .detailed
 			)
 		}

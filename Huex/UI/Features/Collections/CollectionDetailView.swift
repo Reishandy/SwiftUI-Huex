@@ -23,7 +23,7 @@ struct CollectionDetailView: View {
 	@State private var selectedPhotos: Set<PhotoMetadata> = []
 	@State private var activePhoto: PhotoMetadata?
 	@State private var isShowingDetail = false
-	@State private var isShareeSheetShown = false
+	@State private var isShareSheetShown = false
 	
 	@State private var showDeleteAlert = false
 	@State private var showReanalyzeAlert = false
@@ -91,11 +91,11 @@ struct CollectionDetailView: View {
 					moveToBucket = colorBucket
 				},
 				onShare: {
-					isShareeSheetShown = true
+					isShareSheetShown = true
 				}
 			)
 		}
-		.sheet(isPresented: $isShareeSheetShown) {
+		.sheet(isPresented: $isShareSheetShown) {
 			ShareSheetView(selectedPhotos: selectedPhotos.map{$0}) // TODO: Optimize?
 				.presentationDetents([.large])
 				.presentationDragIndicator(.visible)

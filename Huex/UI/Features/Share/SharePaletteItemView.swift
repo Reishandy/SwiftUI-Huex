@@ -25,6 +25,12 @@ struct SharePaletteItemView: View {
 				
 				Spacer(minLength: 8)
 				
+				Text("\(swatch.weight * 100, specifier: "%.2f")%", )
+					.font(.system(.caption2, design: .monospaced))
+					.opacity(0.6)
+					.lineLimit(1)
+					.minimumScaleFactor(0.5)
+				
 				Text(swatch.hex.uppercased())
 					.font(.system(.caption2, design: .monospaced))
 					.opacity(0.6)
