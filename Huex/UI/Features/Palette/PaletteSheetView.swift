@@ -47,8 +47,8 @@ struct PaletteSheetView: View {
 								ForEach(PaletteDisplayMode.allCases) { mode in
 									Text(mode.rawValue).tag(mode)
 								}
-								.labelsVisibility(.visible)
 							}
+							.labelsVisibility(.visible)
 						} label: {
 							Image(systemName: "line.3.horizontal.decrease")
 						}

@@ -78,7 +78,7 @@ struct PaletteItemView: View {
 		.foregroundStyle(shouldUseWhite ? .white : .black)
 		.padding(.vertical, 12)
 		.frame(maxWidth: .infinity)
-		.frame(height: isExpanded ? 180 : 80)
+		.frame(height: isExpanded ? 180 : 62)
 		.background(Color(UIColor(hex: swatch.hex) ?? UIColor.lightGray))
 		.clipShape(RoundedRectangle(cornerRadius: 20))
 		.onTapGesture {

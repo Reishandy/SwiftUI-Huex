@@ -41,51 +41,7 @@ struct ShareSheetView: View {
 		NavigationStack {
 			ScrollView(.horizontal, showsIndicators: false) {
 				LazyHStack(spacing: 0) {
-					ForEach(selectedPhotos) { photo in
-						GeometryReader { geometry in
-							let scale = (geometry.size.width - 20) / 800
-							
-							ScrollView(.vertical, showsIndicators: false) {
-								VStack {
-									Spacer()
-									
-									ShareItemView(
-										image: loadedImages[photo.phaccessLocalIdentifier],
-										bucketDisplayName: photo.bucket?.displayName ?? "Unknown",
-										bucketSymbol: photo.bucket?.symbol ?? "questionmark",
-										bucketColor: photo.bucket?.color ?? .secondary,
-										swatches: photo.swatches,
-										topPalette: photo.topPalette,
-										shareMode: selectedMode
-									)
-									.frame(width: 800)
-									.fixedSize(horizontal: true, vertical: true)
-									.background {
-										GeometryReader { proxy in
-											Color.clear
-												.onAppear {
-													DispatchQueue.main.async {
-														itemHeights[photo.phaccessLocalIdentifier] = proxy.size.height
-													}
-												}
-												.onChange(of: proxy.size.height) { _, newHeight in
-													itemHeights[photo.phaccessLocalIdentifier] = newHeight
-												}
-										}
-									}
-									.scaleEffect(scale)
-									.frame(
-										width: geometry.size.width,
-										height: itemHeights[photo.phaccessLocalIdentifier].map { $0 * scale }
-									)
-									
-									Spacer()
-								}
-								.frame(minHeight: geometry.size.height)
-							}
-						}
-						.containerRelativeFrame(.horizontal)
-					}
+					shareItemList
 				}
 				.scrollTargetLayout()
 			}
@@ -129,4 +85,77 @@ struct ShareSheetView: View {
 			.animation(.default, value: selectedMode)
 		}
 	}
+	
+	@ViewBuilder
+	private var shareItemList: some View {
+		ForEach(selectedPhotos) { photo in
+			GeometryReader { geometry in
+				let availableWidth = geometry.size.width - 20
+				let availableHeight = geometry.size.height - 20
+				
+				let trueHeight = itemHeights[photo.phaccessLocalIdentifier] ?? 1600
+				
+				let widthScale = availableWidth / 800
+				let heightScale = availableHeight / trueHeight
+				let finalScale = min(widthScale, heightScale)
+				
+				VStack {
+					Spacer()
+					
+					ShareItemView(
+						image: loadedImages[photo.phaccessLocalIdentifier],
+						bucketDisplayName: photo.bucket?.displayName ?? "Unknown",
+						bucketSymbol: photo.bucket?.symbol ?? "questionmark",
+						bucketColor: photo.bucket?.color ?? .secondary,
+						swatches: photo.swatches,
+						topPalette: photo.topPalette,
+						shareMode: selectedMode
+					)
+					.frame(width: 800)
+					.fixedSize(horizontal: true, vertical: true)
+					.background {
+						GeometryReader { proxy in
+							Color.clear
+								.onAppear {
+									DispatchQueue.main.async {
+										itemHeights[photo.phaccessLocalIdentifier] = proxy.size.height
+									}
+								}
+								.onChange(of: proxy.size.height) { _, newHeight in
+									itemHeights[photo.phaccessLocalIdentifier] = newHeight
+								}
+						}
+					}
+					.scaleEffect(finalScale)
+					.frame(
+						width: 800 * finalScale,
+						height: trueHeight * finalScale
+					)
+					
+					Spacer()
+				}
+				.frame(width: geometry.size.width, height: geometry.size.height)
+			}
+			.containerRelativeFrame(.horizontal)
+		}
+	}
+}
+
+#Preview {
+	let mockContainer = PreviewData.container
+	
+	let fetchDescriptor = FetchDescriptor<PhotoMetadata>()
+	let allMockPhotos = (try? mockContainer.mainContext.fetch(fetchDescriptor)) ?? []
+	
+	let samplePhotos = Array(allMockPhotos.prefix(3))
+	
+	return Text("View")
+		.frame(maxWidth: .infinity, maxHeight: .infinity)
+		.background(.blue)
+		.sheet(isPresented: .constant(true)) {
+			ShareSheetView(selectedPhotos: samplePhotos)
+				.presentationDetents([.large])
+				.environment(PhotoStoreManager())
+				.modelContainer(mockContainer)
+		}
 }
