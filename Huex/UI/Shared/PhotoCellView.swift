@@ -28,7 +28,6 @@ struct PhotoCellView: View {
 				.overlay {
 					PhotoItemView(
 						phAsset: phAsset,
-						photoMetadata: photoMetadata,
 						targetSize: CGSize(width: 300, height: 300),
 						contentMode: .fill
 					)

@@ -30,7 +30,6 @@ struct PhotoFilmstripView: View {
 						
 						PhotoItemView(
 							phAsset: photoStoreManager.phAssets[photoMetadata.phaccessLocalIdentifier],
-							photoMetadata: photoMetadata,
 							targetSize: CGSize(width: 100, height: 100),
 							contentMode: .fill
 						)

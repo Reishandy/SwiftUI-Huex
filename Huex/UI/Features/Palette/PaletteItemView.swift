@@ -31,6 +31,7 @@ struct PaletteItemView: View {
 				}
 				
 				Text(swatch.hex.uppercased())
+					.font(.system(.body, design: .monospaced))
 					.font(.title2)
 					.bold()
 					

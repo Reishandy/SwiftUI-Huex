@@ -37,7 +37,6 @@ struct CollectionItemView: View {
 					if let photo = previewPhotos.first {
 						PhotoItemView(
 							phAsset: photoStoreManager.phAssets[photo.phaccessLocalIdentifier],
-							photoMetadata: photo,
 							targetSize: CGSize(width: 80, height: 80),
 							contentMode: .fill
 						)

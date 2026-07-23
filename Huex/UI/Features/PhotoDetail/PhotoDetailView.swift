@@ -61,7 +61,6 @@ struct PhotoDetailView: View {
 					ForEach(photoMetadatas) { photoMetadata in
 						PhotoItemView(
 							phAsset: photoStoreManager.phAssets[photoMetadata.phaccessLocalIdentifier],
-							photoMetadata: photoMetadata,
 							targetSize: PHImageManagerMaximumSize,
 							contentMode: .fit
 						)

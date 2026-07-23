@@ -10,23 +10,21 @@ import Photos
 
 struct PhotoItemView: View {
 	let phAsset: PHAsset?
-	let photoMetadata: PhotoMetadata
 	var targetSize: CGSize = PHImageManagerMaximumSize
 	var contentMode: ContentMode = .fill
 	
 	@State private var image: UIImage?
 	
 	var body: some View {
-		ZStack {
-			Color.clear
-			
+		Group {
 			if let image {
 				Image(uiImage: image)
 					.resizable()
 					.aspectRatio(contentMode: contentMode)
 			} else {
 				Rectangle()
-					.fill(.clear)
+					.fill(Color.secondary.opacity(0.1))
+					.aspectRatio(3/4, contentMode: contentMode)
 					.overlay {
 						Image(systemName: "photo.trianglebadge.exclamationmark")
 							.foregroundStyle(.secondary)
@@ -42,5 +40,5 @@ struct PhotoItemView: View {
 }
 
 #Preview {
-    PhotoItemView(phAsset: PHAsset(), photoMetadata: PhotoMetadata(phaccessLocalIdentifier: "preview"))
+    PhotoItemView(phAsset: PHAsset())
 }
