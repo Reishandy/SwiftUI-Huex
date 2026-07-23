@@ -16,6 +16,7 @@ struct SharablePhoto: Identifiable, Transferable {
 	let bucketColor: Color
 	let swatches: [Swatch]
 	let topPalette: [Swatch]
+	let metadataScale: CGFloat
 	
 	static var transferRepresentation: some TransferRepresentation {
 		DataRepresentation(exportedContentType: .jpeg) { item in
@@ -28,11 +29,24 @@ struct SharablePhoto: Identifiable, Transferable {
 	func renderAsImage() async -> UIImage? {
 		await ShareRenderQueue.shared.render { [self] in
 			guard let asset = fetchPHassets(localIdentifiers: [id]).first else { return nil }
+			
 			let sourceImage = await fetchImage(asset: asset, targetSize: CGSize(width: 1600, height: 1600))
-			let card = ShareItemView(image: sourceImage, bucketDisplayName: bucketDisplayName, bucketSymbol: bucketSymbol, bucketColor: bucketColor, swatches: swatches, topPalette: topPalette, shareMode: mode)
+			
+			let card = ShareItemView(
+				image: sourceImage,
+				bucketDisplayName: bucketDisplayName,
+				bucketSymbol: bucketSymbol,
+				bucketColor: bucketColor,
+				swatches: swatches,
+				topPalette: topPalette,
+				shareMode: mode,
+				metadataScale: metadataScale
+			)
 				.frame(width: 800)
+			
 			let renderer = ImageRenderer(content: card)
 			renderer.scale = 2.0
+			
 			return renderer.uiImage
 		}
 	}

@@ -15,6 +15,7 @@ struct ShareSheetView: View {
 	let selectedPhotos: [PhotoMetadata]
 	
 	@State private var selectedMode: ShareMode = .minimal
+	@State private var metadataScale: CGFloat = 1.0
 	@State private var loadedImages: [String: UIImage] = [:]
 	
 	@State private var itemHeights: [String: CGFloat] = [:]
@@ -32,7 +33,8 @@ struct ShareSheetView: View {
 				bucketSymbol: photo.bucket?.symbol ?? "questionmark",
 				bucketColor: photo.bucket?.color ?? .secondary,
 				swatches: photo.swatches,
-				topPalette: photo.topPalette
+				topPalette: photo.topPalette,
+				metadataScale: metadataScale
 			)
 		}
 	}
@@ -64,6 +66,23 @@ struct ShareSheetView: View {
 				
 				ToolbarItem(placement: .topBarTrailing) {
 					Menu {
+						Picker("Info Size", selection: $metadataScale) {
+							Text("Tiny").tag(CGFloat(0.5))
+							Text("Small").tag(CGFloat(1.0))
+							Text("Normal").tag(CGFloat(1.5))
+							Text("Large").tag(CGFloat(2.0))
+							Text("Huge").tag(CGFloat(3.0))
+						}
+						.labelsVisibility(.visible)
+					} label: {
+						Image(systemName: "textformat.size")
+					}
+				}
+				
+				ToolbarSpacer(placement: .topBarTrailing)
+				
+				ToolbarItem(placement: .topBarTrailing) {
+					Menu {
 						Picker("Share Mode", selection: $selectedMode) {
 							ForEach(ShareMode.allCases) { mode in
 								Text(mode.rawValue).tag(mode)
@@ -83,6 +102,7 @@ struct ShareSheetView: View {
 				}
 			}
 			.animation(.default, value: selectedMode)
+			.animation(.default, value: metadataScale)
 		}
 	}
 	
@@ -109,7 +129,8 @@ struct ShareSheetView: View {
 						bucketColor: photo.bucket?.color ?? .secondary,
 						swatches: photo.swatches,
 						topPalette: photo.topPalette,
-						shareMode: selectedMode
+						shareMode: selectedMode,
+						metadataScale: metadataScale
 					)
 					.frame(width: 800)
 					.fixedSize(horizontal: true, vertical: true)

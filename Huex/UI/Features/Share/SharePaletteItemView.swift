@@ -10,6 +10,7 @@ import SwiftUI
 struct SharePaletteItemView: View {
 	let swatch: Swatch
 	let maxWeight: Double
+	var metadataScale: CGFloat = 1.0
 	
 	var minHeight: CGFloat = 20
 	var maxHeight: CGFloat = 60
@@ -24,15 +25,17 @@ struct SharePaletteItemView: View {
 	}
 	
 	private var rowHeight: CGFloat {
-		minHeight + (maxHeight - minHeight) * CGFloat(normalizedWeight)
+		let scaledMin = minHeight * metadataScale
+		let scaledMax = maxHeight * metadataScale
+		return scaledMin + (scaledMax - scaledMin) * CGFloat(normalizedWeight)
 	}
 	
 	private var nameFontSize: CGFloat {
-		max(9, min(13, rowHeight * 0.32))
+		max(9 * metadataScale, min(13 * metadataScale, rowHeight * 0.32))
 	}
 	
 	private var detailFontSize: CGFloat {
-		max(8, min(11, rowHeight * 0.24))
+		max(8 * metadataScale, min(11 * metadataScale, rowHeight * 0.24))
 	}
 	
 	var body: some View {
@@ -42,7 +45,7 @@ struct SharePaletteItemView: View {
 				.lineLimit(1)
 				.minimumScaleFactor(0.5)
 			
-			Spacer(minLength: 8)
+			Spacer(minLength: 8 * metadataScale)
 			
 			Text("\(swatch.weight * 100, specifier: "%.2f")%")
 				.font(.system(size: detailFontSize, design: .monospaced))
@@ -57,11 +60,11 @@ struct SharePaletteItemView: View {
 				.minimumScaleFactor(0.5)
 		}
 		.foregroundStyle(shouldUseWhite ? .white : .black)
-		.padding(.horizontal, 8)
+		.padding(.horizontal, 8 * metadataScale)
 		.frame(height: rowHeight)
 		.frame(maxWidth: .infinity)
 		.background(Color(UIColor(hex: swatch.hex) ?? UIColor.lightGray))
-		.clipShape(RoundedRectangle(cornerRadius: 8))
+		.clipShape(RoundedRectangle(cornerRadius: 8 * metadataScale))
 	}
 }
 

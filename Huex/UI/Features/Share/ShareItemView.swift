@@ -16,6 +16,7 @@ struct ShareItemView: View {
 	let swatches: [Swatch]
 	let topPalette: [Swatch]
 	let shareMode: ShareMode
+	var metadataScale: CGFloat = 1.0
 	
 	private var sortedSwatches: [Swatch] {
 		swatches.sorted { $0.weight > $1.weight }
@@ -48,18 +49,17 @@ struct ShareItemView: View {
 	
 	@ViewBuilder
 	private var metadataView: some View {
-		VStack {
+		VStack(spacing: 4 * metadataScale) {
 			HStack {
-				HStack(spacing: 2) {
+				HStack(spacing: 2 * metadataScale) {
 					if shareMode == .detailed {
 						Image("icon")
 							.resizable()
-							.frame(width: 22, height: 22)
+							.frame(width: 22 * metadataScale, height: 22 * metadataScale)
 					}
 					
 					Text("Huex")
-						.font(.system(.footnote, design: .rounded))
-						.bold()
+						.font(.system(size: 13 * metadataScale, weight: .bold, design: .rounded))
 						.lineLimit(1)
 						.minimumScaleFactor(0.5)
 						.foregroundStyle(.black)
@@ -67,29 +67,29 @@ struct ShareItemView: View {
 				}
 				.geometryGroup()
 				
-				Spacer(minLength: 8)
+				Spacer(minLength: 8 * metadataScale)
 				
 				if shareMode == .detailed {
-					HStack(spacing: 6) {
+					HStack(spacing: 6 * metadataScale) {
 						Text(bucketDisplayName)
-							.font(.system(.footnote, design: .rounded))
+							.font(.system(size: 13 * metadataScale, design: .rounded))
 							.lineLimit(1)
 							.minimumScaleFactor(0.5)
 							.foregroundStyle(.black)
 						
 						Image(systemName: bucketSymbol)
 							.foregroundStyle(bucketColor)
-							.font(.system(.footnote, design: .rounded))
+							.font(.system(size: 13 * metadataScale, design: .rounded))
 							.lineLimit(1)
 							.minimumScaleFactor(0.5)
 							.shadow(radius: 2)
 					}
 				} else {
-					HStack(spacing: 3) {
+					HStack(spacing: 3 * metadataScale) {
 						ForEach(topPalette.prefix(5)) { swatch in
-							RoundedRectangle(cornerRadius: 4)
+							RoundedRectangle(cornerRadius: 4 * metadataScale)
 								.fill(Color(UIColor(hex: swatch.hex) ?? .lightGray))
-								.frame(width: 14, height: 14)
+								.frame(width: 14 * metadataScale, height: 14 * metadataScale)
 								.shadow(radius: 2)
 						}
 					}
@@ -99,14 +99,14 @@ struct ShareItemView: View {
 			if shareMode == .detailed {
 				let maxWeight = sortedSwatches.first?.weight ?? 0
 				
-				VStack(spacing: 4) {
+				VStack(spacing: 4 * metadataScale) {
 					ForEach(sortedSwatches) { swatch in
-						SharePaletteItemView(swatch: swatch, maxWeight: maxWeight)
+						SharePaletteItemView(swatch: swatch, maxWeight: maxWeight, metadataScale: metadataScale)
 					}
 				}
 			}
 		}
-		.padding(8)
+		.padding(8 * metadataScale)
 		.background(.white)
 		.fixedSize(horizontal: false, vertical: true)
 	}
