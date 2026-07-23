@@ -16,6 +16,10 @@ struct ShareItemView: View {
 	let swatches: [Swatch]
 	let shareMode: ShareMode
 	
+	private var sortedSwatches: [Swatch] {
+		swatches.sorted { $0.weight > $1.weight }
+	}
+	
 	var body: some View {
 		VStack {
 			Spacer(minLength: 0)
@@ -77,9 +81,11 @@ struct ShareItemView: View {
 			}
 			
 			if shareMode == .detailed {
-				VStack {
-					ForEach(swatches) { swatch in
-						SharePaletteItemView(swatch: swatch)
+				let maxWeight = sortedSwatches.first?.weight ?? 0
+				
+				VStack(spacing: 4) {
+					ForEach(sortedSwatches) { swatch in
+						SharePaletteItemView(swatch: swatch, maxWeight: maxWeight)
 					}
 				}
 			}
