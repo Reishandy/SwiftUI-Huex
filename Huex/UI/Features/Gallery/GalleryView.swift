@@ -40,7 +40,6 @@ struct GalleryView: View {
 		let query = debouncedSearchText.lowercased()
 		
 		return photoMetadatas.filter { photo in
-			// TODO: Decide if all colors or some treshold weight for the name
 			return photo.swatches.contains { swatch in
 				let matchesHex = swatch.hex.lowercased().contains(query)
 				let matchesName = swatch.name?.lowercased().contains(query) ?? false
@@ -86,7 +85,7 @@ struct GalleryView: View {
 				.navigationTransition(.zoom(sourceID: "sheetSource", in: galleryNamespace))
 		}
 		.sheet(isPresented: $isShareSheetShown) {
-			ShareSheetView(selectedPhotos: selectedPhotos.map{$0}.reversed()) // TODO: Optimize?
+			ShareSheetView(selectedPhotos: selectedPhotos.map{$0}.reversed())
 				.presentationDetents([.large])
 				.presentationDragIndicator(.visible)
 				.presentationSizing(.page)

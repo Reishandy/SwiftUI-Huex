@@ -37,7 +37,7 @@ struct CollectionDetailView: View {
 			predicate: #Predicate { $0.bucketRawValue == targetRawValue },
 			sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
 		)
-		self._photoMetadatas = Query(descriptor) // TODO: Check for reversed
+		self._photoMetadatas = Query(descriptor)
 	}
 	
 	var body: some View {
@@ -96,7 +96,7 @@ struct CollectionDetailView: View {
 			)
 		}
 		.sheet(isPresented: $isShareSheetShown) {
-			ShareSheetView(selectedPhotos: selectedPhotos.map{$0}) // TODO: Optimize?
+			ShareSheetView(selectedPhotos: selectedPhotos.map{$0})
 				.presentationDetents([.large])
 				.presentationDragIndicator(.visible)
 				.presentationSizing(.page)

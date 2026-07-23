@@ -17,20 +17,31 @@ struct SharablePhoto: Identifiable, Transferable {
 	let swatches: [Swatch]
 	
 	static var transferRepresentation: some TransferRepresentation {
-		DataRepresentation(exportedContentType: .png) { item in
+		DataRepresentation(exportedContentType: .jpeg) { item in
 			let uiImage = await item.renderAsImage()
-			return uiImage?.pngData() ?? Data()
+			return uiImage?.jpegData(compressionQuality: 0.85) ?? Data()
 		}
 	}
 	
 	@MainActor
 	func renderAsImage() async -> UIImage? {
-		guard let asset = fetchPHassets(localIdentifiers: [id]).first else { return nil }
-		let sourceImage = await fetchImage(asset: asset, targetSize: CGSize(width: 1600, height: 1600))
-		let card = ShareItemView(image: sourceImage, bucketDisplayName: bucketDisplayName, bucketSymbol: bucketSymbol, bucketColor: bucketColor, swatches: swatches, shareMode: mode)
-			.frame(width: 800)
-		let renderer = ImageRenderer(content: card)
-		renderer.scale = 3.0
-		return renderer.uiImage
+		await ShareRenderQueue.shared.render { [self] in
+			guard let asset = fetchPHassets(localIdentifiers: [id]).first else { return nil }
+			let sourceImage = await fetchImage(asset: asset, targetSize: CGSize(width: 1600, height: 1600))
+			let card = ShareItemView(image: sourceImage, bucketDisplayName: bucketDisplayName, bucketSymbol: bucketSymbol, bucketColor: bucketColor, swatches: swatches, shareMode: mode)
+				.frame(width: 800)
+			let renderer = ImageRenderer(content: card)
+			renderer.scale = 2.0
+			return renderer.uiImage
+		}
+	}
+}
+
+actor ShareRenderQueue {
+	static let shared = ShareRenderQueue()
+	private init() {}
+	
+	func render(_ work: @escaping () async -> UIImage?) async -> UIImage? {
+		await work()
 	}
 }

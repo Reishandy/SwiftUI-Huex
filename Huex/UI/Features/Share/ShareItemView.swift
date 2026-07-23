@@ -36,7 +36,6 @@ struct ShareItemView: View {
 					metadataView
 				}
 			}
-			.clipShape(RoundedRectangle(cornerRadius: shareMode == .clean ? 0 : 12))
 			
 			Spacer(minLength: 0)
 		}

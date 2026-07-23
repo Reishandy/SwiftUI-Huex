@@ -10,7 +10,6 @@ import SwiftUI
 struct PermissionSheetView: View {
 	@Environment(PhotoPermissionManager.self) private var photoPermissionManager
 	
-	// TODO: Improve more playful wording
 	var body: some View {
 		VStack(spacing: 24) {
 			Spacer()
