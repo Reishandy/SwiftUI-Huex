@@ -43,10 +43,11 @@ struct PaletteSheetView: View {
 				.toolbar {
 					ToolbarItem(placement: .topBarTrailing) {
 						Menu {
-							Picker("Colors", selection: $displayMode) {
+							Picker("Color Mode", selection: $displayMode) {
 								ForEach(PaletteDisplayMode.allCases) { mode in
 									Text(mode.rawValue).tag(mode)
 								}
+								.labelsVisibility(.visible)
 							}
 						} label: {
 							Image(systemName: "line.3.horizontal.decrease")
