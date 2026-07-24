@@ -68,7 +68,7 @@ actor PhotoDataWorker {
 		let assets = fetchPHassets(localIdentifiers: [localIdentifier])
 		guard let asset = assets.first else { return nil }
 	
-		let targetSize = CGSize(width: 120, height: 120)
+		let targetSize = CGSize(width: 300, height: 300)
 		guard let image = await fetchImage(asset: asset, targetSize: targetSize) else { return nil }
 		
 		return analyzeImage(image)

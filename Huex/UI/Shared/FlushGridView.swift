@@ -19,6 +19,7 @@ struct FlushGridView<Item: Identifiable & Equatable, Content: View>: View {
 	
 	@State private var shouldPad: Bool
 	@Binding var scrollPosition: ScrollPosition
+	@Binding var showScrollButton: Bool
 	
 	init(
 		_ items: [Item],
@@ -27,6 +28,7 @@ struct FlushGridView<Item: Identifiable & Equatable, Content: View>: View {
 		visibleRowCount: Int? = nil,
 		spacing: CGFloat = 1,
 		scrollPosition: Binding<ScrollPosition>,
+		showScrollButton: Binding<Bool> = .constant(false),
 		@ViewBuilder content: @escaping (Item) -> Content
 	) {
 		self.items = isReversed ? items.reversed() : items
@@ -35,6 +37,7 @@ struct FlushGridView<Item: Identifiable & Equatable, Content: View>: View {
 		self.explicitVisibleRowCount = visibleRowCount
 		self.spacing = spacing
 		self._scrollPosition = scrollPosition
+		self._showScrollButton = showScrollButton
 		self.content = content
 		self._shouldPad = State(initialValue: isReversed)
 	}
@@ -108,6 +111,18 @@ struct FlushGridView<Item: Identifiable & Equatable, Content: View>: View {
 				.frame(minHeight: geometry.size.height, alignment: .top)
 			}
 			.scrollPosition($scrollPosition)
+			.onScrollGeometryChange(for: Bool.self) { geometry in
+				if isReversed {
+					let maxScrollY = geometry.contentSize.height - geometry.containerSize.height
+					let distanceFromBottom = maxScrollY - geometry.contentOffset.y
+					return distanceFromBottom > 500
+				} else {
+					let distanceFromTop = geometry.contentOffset.y
+					return distanceFromTop > 500
+				}
+			} action: { oldValue, newValue in
+				showScrollButton = newValue
+			}
 			.defaultScrollAnchor(isReversed ? .bottom : .top)
 			.onChange(of: items.count) {
 				withAnimation {

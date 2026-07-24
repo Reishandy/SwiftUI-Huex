@@ -27,6 +27,7 @@ struct GalleryView: View {
 	@State private var isCollectionSheetShown = false
 	@State private var isShareSheetShown = false
 	@State private var selectedBucket: ColorBucket?
+	@State private var isScrollButtonShown = false
 	
 	@State private var showDeleteAlert = false
 	@State private var showReanalyzeAlert = false
@@ -61,7 +62,8 @@ struct GalleryView: View {
 				FlushGridView(
 					filteredPhotos,
 					isReversed: true,
-					scrollPosition: $scrollPosition
+					scrollPosition: $scrollPosition,
+					showScrollButton: $isScrollButtonShown
 				) { photoMetadata in
 					PhotoCellView(
 						phAsset: photoStoreManager.phAssets[photoMetadata.phaccessLocalIdentifier],
@@ -111,6 +113,7 @@ struct GalleryView: View {
 				debouncedSearchText = searchText
 			}
 		}
+		.animation(.default, value: isScrollButtonShown)
 		.photoActionAlerts(
 			selectedCount: selectedPhotos.count,
 			showDeleteAlert: $showDeleteAlert,
@@ -173,6 +176,20 @@ struct GalleryView: View {
 			)
 		}
 		.sharedBackgroundVisibility(.hidden)
+		
+		if isScrollButtonShown {
+			ToolbarItem(placement: .topBarTrailing) {
+				Button {
+					withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+						scrollPosition.scrollTo(edge: .bottom)
+					}
+				} label: {
+					Image(systemName: "arrow.down")
+				}
+			}
+			
+			ToolbarSpacer(.flexible, placement: .topBarTrailing)
+		}
 		
 		SelectionToolbar(
 			isSelect: $isSelect,

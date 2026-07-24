@@ -24,6 +24,7 @@ struct CollectionDetailView: View {
 	@State private var activePhoto: PhotoMetadata?
 	@State private var isShowingDetail = false
 	@State private var isShareSheetShown = false
+	@State private var isScrollButtonShown = false
 	
 	@State private var showDeleteAlert = false
 	@State private var showReanalyzeAlert = false
@@ -52,7 +53,8 @@ struct CollectionDetailView: View {
 				FlushGridView(
 					photoMetadatas,
 					isReversed: false,
-					scrollPosition: $gridScrollPosition
+					scrollPosition: $gridScrollPosition,
+					showScrollButton: $isScrollButtonShown
 				) { photoMetadata in
 					PhotoCellView(
 						phAsset: photoStoreManager.phAssets[photoMetadata.phaccessLocalIdentifier],
@@ -70,6 +72,20 @@ struct CollectionDetailView: View {
 		.navigationTitle(colorBucket.displayName)
 		.navigationBarTitleDisplayMode(.inline)
 		.toolbar {
+			if isScrollButtonShown {
+				ToolbarItem(placement: .topBarTrailing) {
+					Button {
+						withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+							gridScrollPosition.scrollTo(edge: .top)
+						}
+					} label: {
+						Image(systemName: "arrow.up")
+					}
+				}
+				
+				ToolbarSpacer(.flexible, placement: .topBarTrailing)
+			}
+			
 			SelectionToolbar(
 				isSelect: $isSelect,
 				selectedPhotos: $selectedPhotos,
@@ -113,6 +129,7 @@ struct CollectionDetailView: View {
 				)
 			}
 		}
+		.animation(.default, value: isScrollButtonShown)
 		.photoActionAlerts(
 			selectedCount: selectedPhotos.count,
 			showDeleteAlert: $showDeleteAlert,
