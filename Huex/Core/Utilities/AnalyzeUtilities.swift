@@ -295,37 +295,36 @@ nonisolated func bucketFor(
 		return .brown
 	}
 	
-	if h >= 320 && h < 360 {
-		return .purple
-	}
-	
-	if h >= 290 && h < 315 {
+	if h >= 290 && h < 320 {
 		if l > 35 {
 			if c < 100 {
 				return .purple
 			}
-		} else {
+		} else if l > 20 {
 			if c < 80 {
+				return .purple
+			}
+		} else {
+			if c < 45 {
 				return .purple
 			}
 		}
 	}
 	
-	return nearestHueBucket(hueDegrees: h)
-}
-
-nonisolated func nearestHueBucket(hueDegrees: Double) -> ColorBucket {
-	let hueCenters: [(ColorBucket, Double)] = [
-		(.red, 20),
-		(.orange, 70),
-		(.yellow, 90),
-		(.green, 110),
-		(.blue, 300)
-	]
-	
-	return hueCenters.min { a, b in
-		circularHueDistance(hueDegrees, a.1) < circularHueDistance(hueDegrees, b.1)
-	}!.0
+	switch h {
+	case 45..<75:
+		return .orange
+	case 75..<110:
+		return .yellow
+	case 110..<220:
+		return .green
+	case 220..<320:
+		return .blue
+	case 320..<360:
+		return .purple
+	default:
+		return .red
+	}
 }
 
 /// Runs Stage A then Stage B on a single already-fetched image. Returns nil
