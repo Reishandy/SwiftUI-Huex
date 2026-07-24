@@ -20,8 +20,27 @@ struct SharablePhoto: Identifiable, Transferable {
 	
 	static var transferRepresentation: some TransferRepresentation {
 		DataRepresentation(exportedContentType: .jpeg) { item in
-			let uiImage = await item.renderAsImage()
-			return uiImage?.jpegData(compressionQuality: 0.85) ?? Data()
+			if item.mode == .clean {
+				return await item.fetchOriginalImageData() ?? Data()
+			} else {
+				let uiImage = await item.renderAsImage()
+				return uiImage?.jpegData(compressionQuality: 1.0) ?? Data()
+			}
+		}
+	}
+	
+	@MainActor
+	func fetchOriginalImageData() async -> Data? {
+		guard let asset = fetchPHassets(localIdentifiers: [id]).first else { return nil }
+		
+		return await withCheckedContinuation { continuation in
+			let options = PHImageRequestOptions()
+			options.isNetworkAccessAllowed = true
+			options.deliveryMode = .highQualityFormat
+			
+			PHImageManager.default().requestImageDataAndOrientation(for: asset, options: options) { data, _, _, _ in
+				continuation.resume(returning: data)
+			}
 		}
 	}
 	
