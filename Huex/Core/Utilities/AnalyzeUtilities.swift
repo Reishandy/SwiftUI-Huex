@@ -274,10 +274,10 @@ nonisolated func categorize(
 /// chroma or extreme lightness.
 nonisolated func bucketFor(
 	swatch: Swatch,
-	blackLightnessMax: Double = 20,
+	blackLightnessMax: Double = 10,
 	whiteLightnessMin: Double = 90,
 	whiteChromaMax: Double = 8,
-	grayChromaMax: Double = 12
+	grayChromaMax: Double = 8
 ) -> ColorBucket {
 	let l = swatch.lch.l
 	let c = swatch.lch.c
@@ -291,11 +291,24 @@ nonisolated func bucketFor(
 		return .pink
 	}
 	
-	if h >= 20 && h <= 100 && l < 83 && c < 45 {
+	if h >= 30 && h <= 115 && l < 81 && c < 45 {
 		return .brown
 	}
-	if h >= 310 && h < 360 {
+	
+	if h >= 320 && h < 360 {
 		return .purple
+	}
+	
+	if h >= 290 && h < 315 {
+		if l > 35 {
+			if c < 100 {
+				return .purple
+			}
+		} else {
+			if c < 80 {
+				return .purple
+			}
+		}
 	}
 	
 	return nearestHueBucket(hueDegrees: h)
@@ -303,9 +316,9 @@ nonisolated func bucketFor(
 
 nonisolated func nearestHueBucket(hueDegrees: Double) -> ColorBucket {
 	let hueCenters: [(ColorBucket, Double)] = [
-		(.red, 40),
+		(.red, 20),
 		(.orange, 70),
-		(.yellow, 85),
+		(.yellow, 90),
 		(.green, 110),
 		(.blue, 300)
 	]
@@ -344,7 +357,6 @@ nonisolated func topPaletteSwatches(
 	
 	func vibrancyScore(_ s: Swatch) -> Double {
 		let chromaFactor = min(s.lch.c / 100.0, 1.0)
-		// sqrt(weight) keeps one dominant swatch from steamrolling everything
 		return sqrt(s.weight) * (0.4 + 0.6 * chromaFactor)
 	}
 	
@@ -352,7 +364,7 @@ nonisolated func topPaletteSwatches(
 	guard candidates.count > count else { return candidates }
 	
 	var selected = [candidates.removeFirst()]
-	let maxLabDistance = 150.0 // rough Lab-space diagonal, for normalizing
+	let maxLabDistance = 150.0
 	
 	while selected.count < count && !candidates.isEmpty {
 		var bestIndex = 0
