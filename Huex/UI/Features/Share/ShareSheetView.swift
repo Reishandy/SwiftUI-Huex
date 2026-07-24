@@ -77,6 +77,7 @@ struct ShareSheetView: View {
 					} label: {
 						Image(systemName: "textformat.size")
 					}
+					.disabled(selectedMode == .clean)
 				}
 				
 				ToolbarSpacer(placement: .topBarTrailing)
