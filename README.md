@@ -18,7 +18,7 @@
 
 ## Overview
 
-Huex started as a passion project born from a simple question: what if you could experience your photo library through color instead of just dates?
+Huex started as a project born from a simple question: what if you could experience your photo library through color instead of just dates?
 
 By analyzing every photo entirely on your device, Huex uncovers the dominant colors hidden in your memories, transforms them into beautiful palettes, and organizes your gallery into a vibrant spectrum. Whether you're searching for artistic inspiration or simply curious about the colors that define your life, Huex offers a playful new way to rediscover your camera roll.
 
