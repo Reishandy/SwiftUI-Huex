@@ -241,9 +241,7 @@ nonisolated func categorize(
 	}
 	
 	func score(_ swatch: Swatch) -> Double {
-		let normalizedChroma = swatch.lch.c / 100.0
-		
-		return (swatch.weight * 0.7) + (normalizedChroma * 0.3)
+		swatch.lch.c * (0.3 + 0.7 * swatch.weight)
 	}
 	
 	let ranked = eligible.sorted { score($0) > score($1) }
