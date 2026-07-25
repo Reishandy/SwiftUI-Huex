@@ -9,7 +9,6 @@
   <p>
     <img src="https://img.shields.io/badge/Swift-6.0-F05138.svg?style=flat&logo=swift" alt="Swift 6.0">
     <img src="https://img.shields.io/badge/iOS-26.0+-000000.svg?style=flat&logo=apple" alt="iOS">
-    <img src="https://img.shields.io/badge/Status-Fun_Experiment-FF1493.svg?style=flat" alt="Status">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat" alt="License">
   </p>
 </div>
