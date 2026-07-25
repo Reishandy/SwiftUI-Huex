@@ -14,6 +14,7 @@ struct Swatch: Codable, Identifiable, Hashable {
 	var hex: String
 	var lab: LabColor
 	var lch: LChColor
+	var oklch: OKLChColor
 	var weight: Double
 	var name: String?
 	
@@ -31,13 +32,9 @@ struct Swatch: Codable, Identifiable, Hashable {
 		
 		let labSimd = rgbToLab(rgbSimd)
 		let lchColor = labToLCh(labSimd)
+		let oklchColor = oklabToOKLCh(rgbToOKLab(rgbSimd))
 		
-		let labColor = LabColor(
-			l: Double(labSimd.x),
-			a: Double(labSimd.y),
-			b: Double(labSimd.z)
-		)
-		
+		let labColor = LabColor(l: Double(labSimd.x), a: Double(labSimd.y), b: Double(labSimd.z))
 		let formattedHex = rgbToHex(rgbSimd)
 		let colorName = NameThatColor.descriptiveName(forHex: formattedHex)
 		
@@ -45,6 +42,7 @@ struct Swatch: Codable, Identifiable, Hashable {
 			hex: formattedHex,
 			lab: labColor,
 			lch: lchColor,
+			oklch: oklchColor,
 			weight: weight,
 			name: colorName
 		)

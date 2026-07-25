@@ -236,11 +236,14 @@ nonisolated func categorize(
 	
 	guard !eligible.isEmpty else {
 		let fallback = swatches.max(by: { $0.weight < $1.weight })!
+		
 		return CategorizationResult(bucket: bucketFor(swatch: fallback), confidence: fallback.weight, margin: 0)
 	}
 	
 	func score(_ swatch: Swatch) -> Double {
-		swatch.lch.c * (0.3 + 0.7 * swatch.weight)
+		let normalizedChroma = swatch.lch.c / 100.0
+		
+		return (swatch.weight * 0.7) + (normalizedChroma * 0.3)
 	}
 	
 	let ranked = eligible.sorted { score($0) > score($1) }
@@ -256,6 +259,8 @@ nonisolated func categorize(
 	}
 	
 	let primaryBucket = bucketFor(swatch: primary)
+	
+	print(primary.hex)
 	
 	if ranked.count > 1 && margin < marginThreshold {
 		let runnerUpBucket = bucketFor(swatch: ranked[1])
@@ -277,11 +282,12 @@ nonisolated func bucketFor(
 	blackLightnessMax: Double = 10,
 	whiteLightnessMin: Double = 90,
 	whiteChromaMax: Double = 8,
-	grayChromaMax: Double = 8
+	grayChromaMax: Double = 10
 ) -> ColorBucket {
 	let l = swatch.lch.l
 	let c = swatch.lch.c
 	let h = swatch.lch.h
+	let okH = swatch.oklch.h
 	
 	if l < blackLightnessMax { return .black }
 	if l > whiteLightnessMin && c < whiteChromaMax { return .white }
@@ -295,20 +301,11 @@ nonisolated func bucketFor(
 		return .brown
 	}
 	
-	if h >= 290 && h < 320 {
-		if l > 35 {
-			if c < 100 {
-				return .purple
-			}
-		} else if l > 20 {
-			if c < 80 {
-				return .purple
-			}
-		} else {
-			if c < 45 {
-				return .purple
-			}
-		}
+	// Blue/purple: CIE LCH hue is unreliable in this region (known LCH bug),
+	// so this one decision routes through OKLCH hue instead. Everything else
+	// stays on CIE LCH.
+	if h >= 220 && h < 340 {
+		return okH < 270 ? .blue : .purple
 	}
 	
 	switch h {

@@ -27,7 +27,6 @@ nonisolated func fetchPHassets(localIdentifiers: [String]? = nil) -> [PHAsset] {
 	return phassets
 }
 
-// TODO: Cache?
 nonisolated func fetchImage(
 	asset: PHAsset,
 	targetSize: CGSize

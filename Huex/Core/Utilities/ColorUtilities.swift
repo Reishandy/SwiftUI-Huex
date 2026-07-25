@@ -8,26 +8,29 @@
 import SwiftUI
 import simd
 
+/// Converts a single sRGB channel (0...255) to linear light (0...1).
+/// Shared by `rgbToLab` and `rgbToOKLab` so both start from the same
+/// linearization instead of duplicating the gamma math.
+nonisolated func linearizeSRGBChannel(_ c: Float) -> Float {
+	let v = c / 255.0
+	return v <= 0.04045 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4)
+}
+
 /// - Parameter rgb: components in 0...255
 nonisolated func rgbToLab(_ rgb: simd_float3) -> simd_float3 {
-	func linearize(_ c: Float) -> Float {
-		let v = c / 255.0
-		return v <= 0.04045 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4)
-	}
+	let r = linearizeSRGBChannel(rgb.x)
+	let g = linearizeSRGBChannel(rgb.y)
+	let b = linearizeSRGBChannel(rgb.z)
 	
-	let r = linearize(rgb.x)
-	let g = linearize(rgb.y)
-	let b = linearize(rgb.z)
+	// sRGB (D65) -> XYZ (D50) using Bradford Chromatic Adaptation Matrix
+	let x = r * 0.4360747 + g * 0.3850649 + b * 0.1430804
+	let y = r * 0.2225045 + g * 0.7168786 + b * 0.0606169
+	let z = r * 0.0139322 + g * 0.0971045 + b * 0.7141733
 	
-	// sRGB -> XYZ (D65)
-	let x = r * 0.4124564 + g * 0.3575761 + b * 0.1804375
-	let y = r * 0.2126729 + g * 0.7151522 + b * 0.0721750
-	let z = r * 0.0193339 + g * 0.1191920 + b * 0.9503041
-	
-	// D65 reference white
-	let xn: Float = 0.95047
+	// D50 reference white
+	let xn: Float = 0.96422
 	let yn: Float = 1.00000
-	let zn: Float = 1.08883
+	let zn: Float = 0.82521
 	
 	func f(_ t: Float) -> Float {
 		let delta: Float = 6.0 / 29.0
@@ -58,18 +61,19 @@ nonisolated func labToRgb(_ lab: simd_float3) -> simd_float3 {
 		return t > delta ? pow(t, 3) : 3 * delta * delta * (t - 4.0 / 29.0)
 	}
 	
-	let xn: Float = 0.95047
+	// D50 reference white
+	let xn: Float = 0.96422
 	let yn: Float = 1.00000
-	let zn: Float = 1.08883
+	let zn: Float = 0.82521
 	
 	let x = xn * finv(fx)
 	let y = yn * finv(fy)
 	let z = zn * finv(fz)
 	
-	// XYZ -> linear sRGB
-	let rLin = x * 3.2404542 + y * -1.5371385 + z * -0.4985314
-	let gLin = x * -0.9692660 + y * 1.8760108 + z * 0.0415560
-	let bLin = x * 0.0556434 + y * -0.2040259 + z * 1.0572252
+	// XYZ (D50) -> linear sRGB (D65) using inverse Bradford Matrix
+	let rLin = x *  3.1338561 + y * -1.6168667 + z * -0.4906146
+	let gLin = x * -0.9787684 + y *  1.9161415 + z *  0.0334540
+	let bLin = x *  0.0719453 + y * -0.2289914 + z *  1.4052427
 	
 	func gammaCorrect(_ c: Float) -> Float {
 		let v = c <= 0.0031308 ? 12.92 * c : 1.055 * pow(c, 1 / 2.4) - 0.055
@@ -89,6 +93,42 @@ nonisolated func labToLCh(_ lab: simd_float3) -> LChColor {
 	if h < 0 { h += 360 }
 	
 	return LChColor(l: l, c: c, h: h)
+}
+
+/// Björn Ottosson's OKLab, computed straight from linear sRGB (no D50
+/// adaptation step — OKLab works natively in D65, which is one of the
+/// things that makes it better-behaved than Lab in the blue/purple range).
+/// - Parameter rgb: components in 0...255
+nonisolated func rgbToOKLab(_ rgb: simd_float3) -> simd_float3 {
+	let r = linearizeSRGBChannel(rgb.x)
+	let g = linearizeSRGBChannel(rgb.y)
+	let b = linearizeSRGBChannel(rgb.z)
+	
+	let l = 0.4122214708 * Double(r) + 0.5363325363 * Double(g) + 0.0514459929 * Double(b)
+	let m = 0.2119034982 * Double(r) + 0.6806995451 * Double(g) + 0.1073969566 * Double(b)
+	let s = 0.0883024619 * Double(r) + 0.2817188376 * Double(g) + 0.6299787005 * Double(b)
+	
+	let l_ = cbrt(l)
+	let m_ = cbrt(m)
+	let s_ = cbrt(s)
+	
+	let L = 0.2104542553 * l_ + 0.7936177850 * m_ - 0.0040720468 * s_
+	let a = 1.9779984951 * l_ - 2.4285922050 * m_ + 0.4505937099 * s_
+	let bVal = 0.0259040371 * l_ + 0.7827717662 * m_ - 0.8086757660 * s_
+	
+	return simd_float3(Float(L), Float(a), Float(bVal))
+}
+
+nonisolated func oklabToOKLCh(_ oklab: simd_float3) -> OKLChColor {
+	let l = Double(oklab.x)
+	let a = Double(oklab.y)
+	let b = Double(oklab.z)
+	
+	let c = sqrt(a * a + b * b)
+	var h = atan2(b, a) * 180 / .pi
+	if h < 0 { h += 360 }
+	
+	return OKLChColor(l: l, c: c, h: h)
 }
 
 /// Shortest angular distance between two hue angles in degrees.
