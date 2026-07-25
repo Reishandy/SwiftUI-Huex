@@ -30,7 +30,7 @@ struct PermissionSheetView: View {
 				.font(.largeTitle)
 				.fontWeight(.bold)
 			
-			Text("To automatically organize your gallery into beautiful, color-coordinated collections, Huex needs access to your photo library.")
+			Text("Huex needs access to your photo library to organize your memories by color.")
 				.multilineTextAlignment(.center)
 				.foregroundStyle(.secondary)
 				.padding(.horizontal)
