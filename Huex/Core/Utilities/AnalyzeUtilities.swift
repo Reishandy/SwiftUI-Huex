@@ -260,8 +260,6 @@ nonisolated func categorize(
 	
 	let primaryBucket = bucketFor(swatch: primary)
 	
-	print(primary.hex)
-	
 	if ranked.count > 1 && margin < marginThreshold {
 		let runnerUpBucket = bucketFor(swatch: ranked[1])
 		
