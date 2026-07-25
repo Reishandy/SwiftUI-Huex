@@ -295,7 +295,7 @@ nonisolated func bucketFor(
 		return .pink
 	}
 	
-	if h >= 30 && h <= 115 && l < 89 && c < 45 {
+	if h >= 30 && h <= 105 && l < 83 && c < 45 {
 		return .brown
 	}
 	
