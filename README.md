@@ -37,7 +37,7 @@ If you have questions, want to chat about color algorithms, or would like to rep
 ### Contact
 
 - **Email:** [akbar@reishandy.id](mailto:akbar@reishandy.id)
-- **Report an Issue:** [https://github.com/Reishandy/Huex/issues/new](https://github.com/Reishandy/Huex/issues/new)
+- **Report an Issue:** [https://github.com/Reishandy/SwiftUI-Huex/issues/new](https://github.com/Reishandy/SwiftUI-Huex/issues/new)
 - **Privacy Policy:** [https://policy.reishandy.id/#huex](https://policy.reishandy.id/#huex)
 
 *Note: All photo processing happens locally on your device. Huex respects your privacy and does not upload your photos to any external servers.*
