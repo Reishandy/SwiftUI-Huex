@@ -60,26 +60,16 @@ If you have questions, want to chat about color algorithms, or would like to rep
 * **High-Quality Layouts:** Seamlessly combines your high-resolution images and generated color swatches into a single, polished graphic entirely in-app.
 * **Quick Sharing:** Effortlessly sends your newly generated artwork straight to the standard share sheet so you can post it anywhere.
 
-## Technical Architecture
-
-This project was built to explore the boundaries of local image processing and color theory within the Apple ecosystem.
-
-* **Native SwiftUI UI:** Built entirely with SwiftUI, utilizing fluid layouts (`FlushGridView`, `Zoomable` modifiers) and modular feature components for a modern, responsive feel.
-* **Framework Bridging:** 
-  * **PhotoKit:** Interacts directly with `PHAsset` and `PHImageManager` via a centralized `PhotoStoreManager` to efficiently load, cache, and request image data with minimal memory overhead.
-  * **CoreGraphics:** Powers the underlying pixel data extraction and image manipulation pipelines.
-* **Custom Color Math Engine:** Implements custom utility classes (`ColorUtilities.swift`) to bridge the gap between standard `UIColor` outputs and advanced human-perception color models (CIELAB/LCh).
-* **Modern Swift Concurrency:** Fully integrates Swift's native `async/await` and actor-isolated workers (`PhotoDataWorker`) to manage heavy pixel analysis asynchronously without blocking the main thread.
-* **Domain-Driven Architecture:** Structured around clean MVVM and domain-driven design principles to separate raw data models (like `PhotoMetadata` and `PreviewData`) from presentation logic.
 ## Tech Stack
 
 * **Framework:** SwiftUI
 * **Language:** Swift 6
 * **Data Management:** PhotoKit & Accelerate
 * **Architecture:** Domain-Driven / SwiftUI Native
+
 ## License
 
-This project is licensed under the MIT License. Feel free to explore the code, fork it, or learn from the color extraction utilities. See the LICENSE file for full details.
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). See the [LICENSE](LICENSE) file for full details.
 
 ---
 
