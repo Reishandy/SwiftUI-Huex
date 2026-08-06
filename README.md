@@ -11,6 +11,11 @@
     <img src="https://img.shields.io/badge/iOS-26.0+-000000.svg?style=flat&logo=apple" alt="iOS">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat" alt="License">
   </p>
+
+  
+  <a href="https://apps.apple.com/id/app/huex-colors-of-memories/id6793973773?itscg=30200&itsct=apps_box_badge&mttnsubad=6793973773" style="display: inline-block;">
+    <img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us?releaseDate=1785888000" alt="Download on the App Store" style="width: 245px; height: 82px; vertical-align: middle; object-fit: contain;" />
+  </a>  
 </div>
 
 ---
