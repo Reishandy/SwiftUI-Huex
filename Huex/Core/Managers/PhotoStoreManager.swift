@@ -16,8 +16,10 @@ class PhotoStoreManager: NSObject, PHPhotoLibraryChangeObserver {
 	
 	var phAssets: [String: PHAsset] = [:]
 	var isAnalyzing: Bool =  false
+	var isICloudEnabled: Bool? = UserDefaults.standard.object(forKey: "isICloudEnabled") as? Bool
 	
 	private var needsAnotherAnalyzingPass: Bool = false
+	private var syncTask: Task<Void, Never>?
 	
 	init(modelContainer: ModelContainer? = nil) {
 		if let modelContainer {
@@ -44,7 +46,24 @@ class PhotoStoreManager: NSObject, PHPhotoLibraryChangeObserver {
 		await self.fetchSycnAndAnalyzePhotos()
 	}
 	
+	func setICloudEnabled(_ isEnabled: Bool) async {
+		self.isICloudEnabled = isEnabled
+		UserDefaults.standard.set(isEnabled, forKey: "isICloudEnabled")
+		
+		do {
+			if isEnabled {
+				try await self.photoDataWorker.resetSkippedPhotos()
+			}
+			
+			try await self.analyzePhotos()
+		} catch {
+			print("> Something went wrong while changing iCloud setting: \(error)")
+		}
+	}
+	
 	func analyzePhotos() async throws {
+		guard self.isICloudEnabled != nil else { return }
+		
 		if self.isAnalyzing {
 			self.needsAnotherAnalyzingPass = true
 			return
@@ -55,7 +74,7 @@ class PhotoStoreManager: NSObject, PHPhotoLibraryChangeObserver {
 		repeat {
 			self.needsAnotherAnalyzingPass = false
 			
-			try await self.photoDataWorker.analyzePhotos()
+			try await self.photoDataWorker.analyzePhotos(isICloudEnabled: self.isICloudEnabled == true)
 		} while self.needsAnotherAnalyzingPass
 		
 		self.isAnalyzing = false
@@ -63,7 +82,13 @@ class PhotoStoreManager: NSObject, PHPhotoLibraryChangeObserver {
 	
 	nonisolated func photoLibraryDidChange(_ changeInstance: PHChange) {
 		Task { @MainActor in
-			await self.fetchSycnAndAnalyzePhotos()
+			self.syncTask?.cancel()
+			self.syncTask = Task {
+				try? await Task.sleep(for: .seconds(1))
+				guard !Task.isCancelled else { return }
+				
+				await self.fetchSycnAndAnalyzePhotos()
+			}
 		}
 	}
 	

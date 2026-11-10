@@ -26,6 +26,7 @@ struct GalleryView: View {
 	@State private var activePhoto: PhotoMetadata?
 	@State private var isCollectionSheetShown = false
 	@State private var isShareSheetShown = false
+	@State private var isICloudSheetShown = false
 	@State private var selectedBucket: ColorBucket?
 	@State private var isScrollButtonShown = false
 	
@@ -85,6 +86,12 @@ struct GalleryView: View {
 				.presentationSizing(.page)
 				.presentationContentInteraction(.resizes)
 				.navigationTransition(.zoom(sourceID: "sheetSource", in: galleryNamespace))
+		}
+		.sheet(isPresented: $isICloudSheetShown) {
+			ICloudSheetView()
+				.presentationDetents([.large])
+				.presentationDragIndicator(.visible)
+				.presentationSizing(.page)
 		}
 		.sheet(isPresented: $isShareSheetShown) {
 			ShareSheetView(selectedPhotos: selectedPhotos.map{$0}.reversed())
@@ -195,7 +202,7 @@ struct GalleryView: View {
 			isSelect: $isSelect,
 			selectedPhotos: $selectedPhotos,
 			namespace: galleryNamespace,
-			shouldShowSelect: !filteredPhotos.isEmpty,
+			shouldShowSelect: !filteredPhotos.isEmpty && (isSelect || !isScrollButtonShown),
 			onSelectAll: {
 				withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
 					isSelect = true
@@ -215,6 +222,30 @@ struct GalleryView: View {
 				isShareSheetShown = true
 			}
 		)
+		
+		if !isSelect {
+			if !isScrollButtonShown {
+				ToolbarSpacer(placement: .topBarTrailing)
+			}
+			
+			ToolbarItem(placement: .topBarTrailing) {
+				Menu {
+					if isScrollButtonShown && !filteredPhotos.isEmpty {
+						Button("Select", systemImage: "checkmark.circle") {
+							withAnimation {
+								isSelect = true
+							}
+						}
+					}
+					
+					Button("iCloud Photos", systemImage: "icloud") {
+						isICloudSheetShown = true
+					}
+				} label: {
+					Image(systemName: "ellipsis")
+				}
+			}
+		}
 		
 		if !isSelect {
 			DefaultToolbarItem(kind: .search, placement: .bottomBar)

@@ -35,7 +35,17 @@ actor PhotoDataWorker {
 		try modelContext.save()
 	}
 	
-	func analyzePhotos() async throws {
+	func resetSkippedPhotos() throws {
+		let photoMetadatas = try modelContext.fetch(FetchDescriptor<PhotoMetadata>())
+		
+		for photoMetadata in photoMetadatas where photoMetadata.swatches.isEmpty {
+			photoMetadata.bucketRawValue = nil
+		}
+		
+		try modelContext.save()
+	}
+	
+	func analyzePhotos(isICloudEnabled: Bool) async throws {
 		while true {
 			var descriptor = FetchDescriptor<PhotoMetadata>(
 				predicate: #Predicate<PhotoMetadata> { photoMetadata in
@@ -49,7 +59,7 @@ actor PhotoDataWorker {
 			guard !metadatas.isEmpty else { break }
 			
 			for metadata in metadatas {
-				if let result = await analyzePhoto(for: metadata.phaccessLocalIdentifier) {
+				if let result = await analyzePhoto(for: metadata.phaccessLocalIdentifier, isICloudEnabled: isICloudEnabled) {
 					metadata.swatches = result.swatches
 					metadata.bucket = result.bucket
 				} else {
@@ -64,12 +74,12 @@ actor PhotoDataWorker {
 		}
 	}
 	
-	private func analyzePhoto(for localIdentifier: String) async -> (bucket: ColorBucket, swatches: [Swatch])? {
+	private func analyzePhoto(for localIdentifier: String, isICloudEnabled: Bool) async -> (bucket: ColorBucket, swatches: [Swatch])? {
 		let assets = fetchPHassets(localIdentifiers: [localIdentifier])
 		guard let asset = assets.first else { return nil }
 	
 		let targetSize = CGSize(width: 300, height: 300)
-		guard let image = await fetchImage(asset: asset, targetSize: targetSize) else { return nil }
+		guard let image = await fetchImage(asset: asset, targetSize: targetSize, isNetworkAccessAllowed: isICloudEnabled) else { return nil }
 		
 		return analyzeImage(image)
 	}

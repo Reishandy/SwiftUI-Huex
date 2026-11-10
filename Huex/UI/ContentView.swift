@@ -10,24 +10,35 @@ import SwiftData
 
 struct ContentView: View {
 	@Environment(PhotoPermissionManager.self) private var photoPermissionManager
+	@Environment(PhotoStoreManager.self) private var photoStoreManager
 	
-	@State private var isPermissionSheetShown = false
+	@State private var isSheetShown = false
+	
+	private var shouldShowSheet: Bool {
+		photoPermissionManager.shouldShowPermissionSheet || photoStoreManager.isICloudEnabled == nil
+	}
 	
 	var body: some View {
 		NavigationStack {
 			GalleryView()
 		}
-		.sheet(isPresented: $isPermissionSheetShown) {
-			PermissionSheetView()
+		.sheet(isPresented: $isSheetShown) {
+			Group {
+				if photoPermissionManager.isAuthorized {
+					ICloudSheetView()
+				} else {
+					PermissionSheetView()
+				}
+			}
 				.presentationDetents([.large])
 				.interactiveDismissDisabled()
 				.presentationSizing(.page)
 		}
 		.onAppear {
-			isPermissionSheetShown = photoPermissionManager.shouldShowPermissionSheet
+			isSheetShown = shouldShowSheet
 		}
-		.onChange(of: photoPermissionManager.shouldShowPermissionSheet) { _, _ in
-			isPermissionSheetShown = photoPermissionManager.shouldShowPermissionSheet
+		.onChange(of: shouldShowSheet) { _, _ in
+			isSheetShown = shouldShowSheet
 		}
 	}
 }

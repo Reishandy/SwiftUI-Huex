@@ -29,11 +29,12 @@ nonisolated func fetchPHassets(localIdentifiers: [String]? = nil) -> [PHAsset] {
 
 nonisolated func fetchImage(
 	asset: PHAsset,
-	targetSize: CGSize
+	targetSize: CGSize,
+	isNetworkAccessAllowed: Bool = true
 ) async -> UIImage? {
 	let manager = PHImageManager.default()
 	let options = PHImageRequestOptions()
-	options.isNetworkAccessAllowed = true
+	options.isNetworkAccessAllowed = isNetworkAccessAllowed
 	options.deliveryMode = .highQualityFormat
 	
 	return await withCheckedContinuation { continuation in
