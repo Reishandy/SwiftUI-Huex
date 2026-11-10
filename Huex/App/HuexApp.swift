@@ -30,6 +30,7 @@ struct HuexApp: App {
 	var body: some Scene {
 		WindowGroup {
 			ContentView()
+				.scrollEdgeEffectStyle(.soft, for: .all)
 				.environment(photoPermissionManager)
 				.environment(photoStoreManager)
 				.task(id: photoPermissionManager.authorizationStatus) {

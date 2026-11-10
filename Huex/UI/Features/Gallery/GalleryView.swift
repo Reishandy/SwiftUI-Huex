@@ -111,8 +111,6 @@ struct GalleryView: View {
 		.navigationDestination(item: $selectedBucket) { bucket in
 			CollectionDetailView(colorBucket: bucket)
 		}
-		.searchable(text: $searchText, placement: .toolbar, prompt: "Search by color or hex...")
-		.searchToolbarBehavior(.minimize)
 		.task(id: searchText) {
 			try? await Task.sleep(for: .milliseconds(300))
 			
@@ -171,6 +169,7 @@ struct GalleryView: View {
 				}
 			}
 		)
+		.searchableToolbar(text: $searchText, isEnabled: !isSelect)
 	}
 	
 	@ToolbarContentBuilder
@@ -276,6 +275,18 @@ struct GalleryView: View {
 						}
 				)
 			}
+		}
+	}
+}
+
+private extension View {
+	@ViewBuilder
+	func searchableToolbar(text: Binding<String>, isEnabled: Bool) -> some View {
+		if isEnabled {
+			searchable(text: text, placement: .toolbar, prompt: "Search by color or hex...")
+				.searchToolbarBehavior(.minimize)
+		} else {
+			self
 		}
 	}
 }
